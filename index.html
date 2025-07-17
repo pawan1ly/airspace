@@ -2038,67 +2038,38 @@
 
         const sectorTooltip = document.getElementById("sectorTooltip");
 
-let sectorTooltipActive = false;
+        sectorTooltip.onmouseenter = () => {
+          const sectors = routeSectors[routeKey];
+          if (!sectors) return;
 
-function showRouteSectors() {
-  const sectors = routeSectors[currentRouteKey];
-  if (!sectors) return;
+          sectors.forEach((code) => {
+            if (!sectorPolygons[code] || sectorLayers[code]) return;
 
-  sectors.forEach(code => {
-    if (!sectorPolygons[code] || hoverSectorLayers[code]) return;
+            const color = sectorColors[code] || "orange";
+            const poly = L.polyline(sectorPolygons[code], {
+              color: color,
+              weight: 1.5,
+              dashArray: "5 5",
+              opacity: 0.8,
+              fill: true,
+              fillColor: color,
+              fillOpacity: 0.2,
+            }).addTo(map);
 
-    if (!activeSectorCodes.has(code)) {
-      const color = sectorColors[code] || "orange";
-      const poly = L.polyline(sectorPolygons[code], {
-        color: color,
-        weight: 1.5,
-        dashArray: "5 5",
-        opacity: 0.8,
-        fill: true,
-        fillColor: color,
-        fillOpacity: 0.1
-      }).addTo(map);
+            sectorLayers[code] = poly;
+            temporarySectors.push(code);
+          });
+        };
 
-      hoverSectorLayers[code] = poly;
-      temporarySectors.push(code);
-    }
-  });
-}
-
-function hideRouteSectors() {
-  temporarySectors.forEach(code => {
-    if (hoverSectorLayers[code]) {
-      map.removeLayer(hoverSectorLayers[code]);
-      delete hoverSectorLayers[code];
-    }
-  });
-  temporarySectors = [];
-}
-
-sectorTooltip.addEventListener("mouseenter", () => {
-  sectorTooltipActive = true;
-  showRouteSectors();
-});
-
-sectorTooltip.addEventListener("mouseleave", () => {
-  sectorTooltipActive = false;
-  hideRouteSectors();
-});
-
-// 🟠 Touch support:
-sectorTooltip.addEventListener("touchstart", (e) => {
-  e.preventDefault(); // prevent double tap zoom
-  if (!sectorTooltipActive) {
-    showRouteSectors();
-    sectorTooltipActive = true;
-  } else {
-    hideRouteSectors();
-    sectorTooltipActive = false;
-  }
-});
-
-
-        
+        sectorTooltip.onmouseleave = () => {
+          temporarySectors.forEach((code) => {
+            if (sectorLayers[code]) {
+              map.removeLayer(sectorLayers[code]);
+              delete sectorLayers[code];
+            }
+          });
+          temporarySectors = [];
+        };
 
         const { airwaySegments, dctSegments } = expandRouteWithAirwaySegments(
           routeSteps,
