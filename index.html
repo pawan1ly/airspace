@@ -18,6 +18,7 @@
         width: 100vw;
         background-color: #374b57; //screen backgroud
       }
+
       .coord-label {
         background: none !important;
         border: none !important;
@@ -164,7 +165,7 @@
 
       #sectorPanel {
         position: absolute;
-        top: 2px;
+        top: 33px;
         right: 5px;
         background: rgba(0, 0, 0, 0.5);
         color: white;
@@ -221,14 +222,14 @@
       /*--display complete route at the bottom of the screen */
       #routeTooltip {
         position: absolute;
-        bottom: 30px;
+        bottom: 50px;
         left: 50%;
         transform: translateX(-50%);
         padding: 6px 12px;
         background: rgba(0, 0, 0, 0.6);
         color: white;
         font-size: 15px;
-        font-family: 'Roboto', calibri;
+        font-family: 'Roboto', aptos;
         //font-weight: bold;
         border-radius: 12px;
         z-index: 1001;
@@ -242,14 +243,14 @@
       /*--display sector initials at the bottom of the screen */
       #sectorTooltip {
         position: absolute;
-        bottom: 70px;
+        bottom: 90px;
         left: 50%;
         transform: translateX(-50%);
         padding: 6px 12px;
         background: rgba(0, 0, 0, 0.6);
         color: white;
         font-size: 15px;
-        font-family: 'Roboto', calibri;
+        font-family: 'Roboto', aptos;
         //font-weight: bold;
         border-radius: 12px;
         z-index: 1001;
@@ -341,7 +342,9 @@
 
     <button id="resetViewBtn" class="map-btn">Clear</button>
     <button id="toggleMapBtn" class="map-btn">Toggle Map</button>
-    <!--<button id="toggleWaypointsBtn" class="map-btn">Waypoints: ON</button>-->
+    <button id="toggleWaypointsBtn" class="map-btn">Names: ON</button>
+
+    <!--<button id="toggleWaypointBtn">Toggle Waypoints</button>-->
 
     <div id="map"></div>
     <div id="sectorTooltip">Sectors:</div>
@@ -1209,7 +1212,7 @@
       "ASTOG-OMSJ": ["C", "W"],
       "BUNDU-OMAA": ["S", "G"],
       "BUNDU-OMAD": ["S", "G"],
-      "BUNDU-OMAL": ["S", "G", "H"],
+      "BUNDU-OMAL": ["S", "G"],
       "ITRAX-OMAA,AD": ["A"],
       "ITRAX-OMAL": ["A"],
       "KATIT-OMAA,AD": ["L"],
@@ -1301,7 +1304,7 @@
       "BUNDU-LABRI*-FRA": ["S", "B"],
       "BUNDU-OMAA-FRA": ["S", "G"],
       "BUNDU-OMAD-FRA": ["S", "G"],
-      "BUNDU-OMAL-FRA": ["S", "G", "H"],
+      "BUNDU-OMAL-FRA": ["S", "G"],
       "BUNDU-RETAS-FRA": ["S", "B"],
       "BUNDU-TONVO-FRA": ["S", "M"],
       "BUNDU-TONVO*-FRA": ["S", "M"],
@@ -1696,6 +1699,8 @@
         "#17F5CB",
       ];
 
+let extraLabelMarkers = [];
+
       //-------------------------------------
       function expandRoute(routeSeq, airwaysDict) {
         const expanded = [];
@@ -1837,7 +1842,7 @@
           lon: convertDMSToDecimal(lonDMS),
         }))
         .filter((pt) => pt.lat !== null && pt.lon !== null);
-//here---
+
       const map = L.map("map", {
         zoomControl: false,
         attributionControl: false,
@@ -1849,25 +1854,29 @@
 
       //baseMapLayer.addTo(map);
 
-      document
-        .getElementById("toggleMapBtn")
-        .addEventListener("click", function () {
-          if (mapLayerVisible) {
-            map.removeLayer(baseMapLayer);
-            //this.textContent = "Map Layer: OFF";
-            setExtraLabelColor("white"); // White text for dark background
-          } else {
-            baseMapLayer.addTo(map);
-            //this.textContent = "Map Layer: ON";
-            setExtraLabelColor("black"); // Black text for bright map
-          }
-          mapLayerVisible = !mapLayerVisible;
-        });
+
+
+document.getElementById("toggleMapBtn").addEventListener("click", function () {
+  if (mapLayerVisible) {
+    map.removeLayer(baseMapLayer);
+    coordLabelColor = "white";
+  } else {
+    baseMapLayer.addTo(map);
+    coordLabelColor = "black";
+  }
+
+  document.querySelectorAll('.coord-label').forEach(label => {
+    label.style.color = coordLabelColor;
+  });
+
+  mapLayerVisible = !mapLayerVisible;
+});
+
 
    //draw main FIR boundary------------------------
       const polyline = L.polyline(latlngs, {
         color: "yellow",
-        weight: 0.9,
+        weight: 0.8,
         dashArray: "3 3",
       }).addTo(map);
 
@@ -1917,36 +1926,75 @@
       }
 
       //draw fix triangles----------------------
-      function renderTriangles() {
-        triangleLayers.forEach((layer) => map.removeLayer(layer));
-        triangleLayers = [];
-        //let waypointLabels = [];
-        //let waypointsVisible = true;
+function renderTriangles() {
+  triangleLayers.forEach((layer) => map.removeLayer(layer));
+  triangleLayers = [];
 
-        const zoom = map.getZoom();
-        const baseSize = 0.05;
-        const scale = Math.pow(2, 7 - zoom);
-        const size = baseSize * scale;
+  const zoom = map.getZoom();
+  const baseSize = 0.05;
+  const scale = Math.pow(2, 7 - zoom);
+  const size = baseSize * scale;
 
-        //display triangles on extraPoints
-        extraLatLngs.forEach((pt) => {
-          const triangle = drawEquilateralTriangle([pt.lat, pt.lon], size);
-          triangleLayers.push(triangle);
+  // Display triangles on extraPoints
+  extraLatLngs.forEach((pt) => {
+    const triangle = drawEquilateralTriangle([pt.lat, pt.lon], size);
+    triangleLayers.push(triangle);
+  });
+}
 
-          const label = L.tooltip({
-            permanent: true,
-            direction: "top",
-            offset: [0, 0],
-            className: "coord-label",
-          })
-            .setLatLng([pt.lat, pt.lon])
-            .setContent(pt.name)
-            .addTo(map);
 
-          label.getElement().style.color = mapLayerVisible ? "black" : "white";
-          triangleLayers.push(label);
-        });
+/*
+Object.entries(extraPoints).forEach(([name, [latDMS, lonDMS]]) => {
+  const lat = convertDMSToDecimal(latDMS);
+  const lon = convertDMSToDecimal(lonDMS);
+
+  if (lat !== null && lon !== null) {
+    const labelMarker = L.marker([lat, lon], {
+      icon: L.divIcon({
+        className: 'coord-label',
+        direction: "top",
+        html: `<span>${name}</span>`,
+        iconSize: [0, 0],
+        iconAnchor: [0, 0],
+      })
+    }).addTo(map);
+
+    extraLabelMarkers.push(labelMarker);
+  }
+});
+*/
+
+
+Object.entries(extraPoints).forEach(([name, [latDMS, lonDMS]]) => {
+  const lat = convertDMSToDecimal(latDMS);
+  const lon = convertDMSToDecimal(lonDMS);
+
+  if (lat !== null && lon !== null) {
+    const label = L.tooltip({
+      permanent: true,
+      direction: "top",
+      offset: [0, -5],
+      className: "coord-label"
+    })
+    .setLatLng([lat, lon])
+    .setContent(name)
+    .addTo(map);
+
+    // Push to global list for toggle control
+    extraLabelMarkers.push(label);
+    setExtraLabelColor("white");
+
+    // Wait until the element is rendered, then apply styles
+    setTimeout(() => {
+      const el = label.getElement();
+      if (el) {
+        el.style.color = coordLabelColor || "white";
+        el.style.opacity = coordsVisible ? "1" : "0";  // ← Show/hide based on toggle state
       }
+    }, 0);
+  }
+});
+
 
       let drawnRouteLayers = [];
 
@@ -2324,6 +2372,24 @@
               }
             });
           });
+
+
+
+let coordsVisible = true;
+
+document.getElementById("toggleWaypointsBtn").addEventListener("click", function () {
+  coordsVisible = !coordsVisible;
+
+  extraLabelMarkers.forEach(label => {
+    const el = label.getElement();
+    if (el) {
+      el.style.opacity = coordsVisible ? "1" : "0";
+    }
+  });
+
+  this.textContent = coordsVisible ? "Names: ON" : "Names: OFF";
+});
+
 
         // High group toggle-------------------
         document
