@@ -3,7 +3,9 @@
   <head>
     <title>UAE ACC MAP_V15</title>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!--<meta name="viewport" content="width=device-width, initial-scale=1.0" />-->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <style>
       html,
       body {
@@ -14,10 +16,37 @@
         width: 100%;
       }
       #map {
+        width: 100%;
         height: 100vh;
-        width: 100vw;
+        max-height: 100vh;
         background-color: #374b57; //screen backgroud
       }
+
+      * {
+  box-sizing: border-box;
+}
+
+body, html {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden;
+}
+@media (max-width: 768px) {
+  .button-container, #sectorOptions {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  #sectorOptions label {
+    font-size: 0.85rem;
+    margin: 3px;
+  }
+
+  button, input[type="checkbox"] {
+    transform: scale(0.95);
+  }
+}
       .coord-label {
         background: none !important;
         border: none !important;
