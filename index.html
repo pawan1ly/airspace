@@ -1943,29 +1943,6 @@ function renderTriangles() {
   });
 }
 
-
-/*
-Object.entries(extraPoints).forEach(([name, [latDMS, lonDMS]]) => {
-  const lat = convertDMSToDecimal(latDMS);
-  const lon = convertDMSToDecimal(lonDMS);
-
-  if (lat !== null && lon !== null) {
-    const labelMarker = L.marker([lat, lon], {
-      icon: L.divIcon({
-        className: 'coord-label',
-        direction: "top",
-        html: `<span>${name}</span>`,
-        iconSize: [0, 0],
-        iconAnchor: [0, 0],
-      })
-    }).addTo(map);
-
-    extraLabelMarkers.push(labelMarker);
-  }
-});
-*/
-
-
 Object.entries(extraPoints).forEach(([name, [latDMS, lonDMS]]) => {
   const lat = convertDMSToDecimal(latDMS);
   const lon = convertDMSToDecimal(lonDMS);
@@ -2390,7 +2367,6 @@ document.getElementById("toggleWaypointsBtn").addEventListener("click", function
 
   this.textContent = coordsVisible ? "Names: ON" : "Names: OFF";
 });
-
 
         // High group toggle-------------------
         document
