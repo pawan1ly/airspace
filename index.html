@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>UAE ACC MAP_V15</title>
+    <title>UAE ACC MAP_V22</title>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <style>
@@ -28,7 +28,7 @@
         color: white;
         font-size: 9px;
         font-family: 'Roboto', calibri-light;
-        //font-weight: light; /* Thinner font */
+        font-weight: light; /* Thinner font */
         text-align: center;
         opacity: 0.5;
       }
@@ -52,6 +52,19 @@
         line-height: 1;
       }
 
+.sector-label {
+  background: none !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  color: rgba(255, 255, 255, 0.2) !important;
+  font-size: 48px !important;
+  font-family: monospace !important;
+  font-weight: bold !important;
+  text-align: bottom !important;
+  opacity: 1 !important;  /* Ensure container is fully visible; opacity is handled via rgba */
+}
       #resetViewBtn {
         position: absolute;
         top: 2px;
@@ -103,7 +116,7 @@
         border-radius: 8px;
         padding: 8px;
         width: 150px;
-        max-height: 89%;
+        max-height: 53%;
         overflow: hidden;
         //overflow-y: auto;
         z-index: 1000;
@@ -167,7 +180,7 @@
         position: absolute;
         top: 33px;
         right: 5px;
-        background: rgba(0, 0, 0, 0.4);
+        background: rgba(0, 0, 0, 0.5);
         color: white;
         font-family: sans-serif;
         font-size: 12px;
@@ -175,7 +188,7 @@
         overflow: hidden;
         z-index: 1000;
         width: 75px;
-        box-shadow: 0 0 5px rgba(0, 0, 0, 0.4);
+        box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
       }
 
       #sectorHeader {
@@ -189,7 +202,7 @@
       #sectorOptions {
         padding: 8px;
         //display: none; /* start collapsed */
-        max-height: 300px;
+        max-height: 410px;
         overflow-y: auto;
       }
 
@@ -219,17 +232,37 @@
         background-color: transparent;
       }
 
-      /*--display complete route at the bottom of the screen */
+/*--display full route fix names at the bottom of the screen */
+#expandedRouteTooltip {
+  position: absolute;
+  bottom: 23px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 6px 12px;
+  background: rgba(0, 0, 0, 0.9);
+  color: white;
+  font-size: 14px;
+  font-family: monospace;
+  border-radius: 12px;
+  z-index: 1001;
+  max-width: 90%;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+      /*--display route with airway names at the bottom of the screen */
       #routeTooltip {
         position: absolute;
-        bottom: 50px;
+        bottom: 60px;
         left: 50%;
         transform: translateX(-50%);
         padding: 6px 12px;
-        background: rgba(0, 0, 0, 0.35);
+        background: rgba(0, 0, 0, 0.9);
         color: white;
-        font-size: 15px;
-        font-family: 'Roboto', aptos;
+        font-size: 13px;
+        font-family: 'Roboto', san-serif;
         //font-weight: bold;
         border-radius: 12px;
         z-index: 1001;
@@ -243,14 +276,14 @@
       /*--display sector initials at the bottom of the screen */
       #sectorTooltip {
         position: absolute;
-        bottom: 90px;
+        bottom: 95px;
         left: 50%;
         transform: translateX(-50%);
         padding: 6px 12px;
-        background: rgba(0, 0, 0, 0.35);
+        background: rgba(0, 0, 0, 0.9);
         color: white;
-        font-size: 15px;
-        font-family: 'Roboto', aptos;
+        font-size: 14px;
+        font-family: 'Roboto', san-serif;
         //font-weight: bold;
         border-radius: 12px;
         z-index: 1001;
@@ -261,11 +294,25 @@
         text-overflow: ellipsis;
       }
 
+#zoomSliderPanel {
+  position: absolute;
+  bottom: 15px;
+  right: 15px;
+  background: rgba(0,0,0,0.6);
+  padding: 8px;
+  border-radius: 10px;
+  z-index: 1500; /* ensure above map */
+}
+
+#zoomSlider {
+  width: 150px;
+}
+
       #routeFilters {
         display: flex;
         justify-content: space-between;
         margin-bottom: 8px;
-        background: rgba(0, 0, 0, 0.4);
+        background: rgba(0, 0, 0, 0.15);
         border-bottom: 1px solid #888;
       }
 
@@ -314,14 +361,14 @@
       </div>
       <div id="routeList"></div>
     </div>
+    <div id="expandedRouteTooltip"></div>
 
     <div id="sectorPanel">
       <div id="sectorHeader" onclick="toggleSectorPanel()">Sectors ▸</div>
-      <hr style="border-color: gray" />
       <div id="sectorOptions">
         <label><input type="checkbox" id="selectHighSectors" /> High</label>
         <label><input type="checkbox" id="selectLowSectors" /> Low</label>
-        <hr style="border-color: gray" />
+        <hr style="margin: 6px 0; border-color: gray" />
         <label><input type="checkbox" value="S" /> ACCS</label>
         <label><input type="checkbox" value="L" /> ACCL</label>
         <label><input type="checkbox" value="B" /> ACCB</label>
@@ -352,6 +399,75 @@
     <div id="routeTooltip">Route:</div>
     <!--<div id="routeTooltip">Route: —</div> -->
     <--!to display "Route:-" on tooltip -->
+
+    <div id="sectorTablePanel" 
+         style="position:absolute; bottom:10px; left:5px; 
+                background:rgba(0,0,0,0.6); color:white; 
+                padding:10px; border-radius:8px; 
+                font-size:11px; font-family:sans-serif;
+                z-index:1200;">
+      <table id="sectorTable" border="1" cellpadding="5" cellspacing="0" style="border-collapse:collapse; background:#2c3e50; color:white;">
+        <thead>
+          <tr>
+            <th>Sectors</th>
+            <th>Limit</th>
+            <th>Freq</th>
+          </tr>
+        </thead>
+        <tbody>
+        </tbody>
+      </table>
+    </div>
+
+    <div id="zoomSliderPanel" style="position:absolute; bottom:15px; right:15px; 
+                background:rgba(0,0,0,0.6); padding:8px; border-radius:10px; 
+                z-index:1500; color:white; font-size:12px;font-family:sans-serif;">
+      <label for="zoomSlider">Zoom:</label>
+      <input type="range" id="zoomSlider" min="5" max="12" step="0.2" value="7">
+      <span id="zoomValue">7.0</span>
+    </div>
+
+<script>
+
+  // Array (library) to store rows
+  const sectorData = [
+    { sector: "SOUTH", limit: "SFC-F600", freq: "128.250"},
+    { sector: "LIMA", limit: "SFC-F600", freq: "118.975"},
+    { sector: "BRAVO", limit: "SFC-F600", freq: "125.925"},
+    { sector: "GOLF", limit: "SFC-F245", freq: "120.525"},
+    { sector: "ALPHA", limit: "SFC-F255", freq: "129.500"},
+    { sector: "NORTH", limit: "SFC-F600", freq: "132.150"},
+    { sector: "MIKE", limit: "SFC-F600", freq: "132.550"},
+    { sector: "WEST", limit: "SFC-F245", freq: "119.300"},
+    { sector: "CENTRAL", limit: "SFC-F600", freq: "124.375"},
+    { sector: "DELTA", limit: "SFC-F245", freq: "120.900"},
+    { sector: "HOTEL", limit: "SFC-F255", freq: "128.125"},
+    { sector: "EAST", limit: "SFC-F255", freq: "125.375"},
+    { sector: "YANKEE", limit: "A095-F185", freq: "118.925"},
+    { sector: "ROMEO", limit: "SFC-F245", freq: "124.850"}
+  ];
+
+  // Function to render table from sectorData
+  function renderSectorTable() {
+    const tbody = document.querySelector("#sectorTable tbody");
+    tbody.innerHTML = ""; // clear old rows
+
+    sectorData.forEach(row => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${row.sector}</td>
+        <td>${row.limit}</td>
+        <td>${row.freq}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  // Call once on load
+  renderSectorTable();
+</script>
+
+
 
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script>
@@ -682,34 +798,27 @@
         ALGUX: ["242247N", "0541209E"],
         ALKAN: ["255224N", "0521625E"],
         ALNEV: ["244601N", "0534122E"],
-        ALNEV: ["244601N", "0534122E"],
-        ALNEV: ["244601N", "0534122E"],
         ALPOB: ["254218N", "0530055E"],
-        ALPOB: ["254218N", "0530055E"],
-        ALRAR: ["254058.2N", "0550149.4E"],
         ALRAR: ["254058.2N", "0550149.4E"],
         ALSEM: ["252705N", "0524336E"],
         ALSIL: ["252911.1N", "0554639.4E"],
         AMBOV: ["253439N", "0543512E"],
         AMBOV: ["253439N", "0543512E"],
         ANVIX: ["244655.0N", "0555616.0E"],
-        ANVIX: ["244655.0N", "0555616.0E"],
         ASNAX: ["245659N", "0524054E"],
         ASNEK: ["255630.7N", "0554904.7E"],
         ASNIB: ["243982N", "0572109E"],
-        ASPED: ["240036N", "0553154E"],
+        ASPAK: ["262115.49N", "0522257E"], 
         ASPED: ["240036N", "0553154E"],
         ASRAT: ["242114N", "0535944E"],
         ASTOG: ["252822N", "0525025E"],
         ATUDO: ["241708.0N", "0543432.0E"],
-        ATUDO: ["241708.0N", "0543432.0E"],
-        ATUDO: ["241708.0N", "0543432.0E"],
         BAH: ["261625N", "0503801E"],
         BND: ["271182N", "0562201E"],
+        BONAN: ["260200.60N","0515505.41E"],
         BOPEK: ["230098N", "0520012E"],
         BOPIT: ["235947N", "0540404E"],
-        BOSEV: ["245013.3N", "0540448.8E"],
-        BOSEV: ["245013.3N", "0540448.8E"],
+        BOPOV: ["262429.69N", "0515043.17E"],
         BOSEV: ["245013.3N", "0540448.8E"],
         BOTAM: ["240245N", "0565333E"],
         BOXOT: ["251039N", "0531817E"],
@@ -718,6 +827,7 @@
         DANOK: ["234220N", "0533111E"],
         DANUX: ["223608N", "0541596E"],
         DAPER: ["254536N", "0545751E"],
+        DAPOK: ["235994N", "0572999E"],
         DASLO: ["254562N", "0523048E"],
         DATOB: ["253053.0N", "0544656.9E"],
         DATUT: ["263354N", "0533563E"],
@@ -728,117 +838,78 @@
         DENSA: ["263197N", "0542933E"],
         DESVU: ["242222N", "0554253E"],
         DETGU: ["252623.9N", "0553604.6E"],
-        DETGU: ["252623.9N", "0553604.6E"],
         DIXAM: ["254151N", "0543557E"],
         DOH: ["251500N", "0513658E"],
         DXB: ["251517N", "0552187E"],
         EGMIT: ["263367N", "0530842E"],
         EGPEP: ["255746.8N", "0555822.5E"],
-        EGPEP: ["255746.8N", "0555822.5E"],
-        EGPOG: ["244727N", "0531950E"],
         EGPOG: ["244727N", "0531950E"],
         EGROK: ["235289N", "0560144E"],
         EGROP: ["245211N", "0543625E"],
         EGTAG: ["250856N", "0545652E"],
-        EGTAG: ["250856N", "0545652E"],
-        EGTAG: ["250856N", "0545652E"],
-        ELEPO: ["243211N", "0544410E"],
         ELEPO: ["243211N", "0544410E"],
         ELIGA: ["242121N", "0530148E"],
         ELIRA: ["262109N", "0534504E"],
+        ELOBI: ["250782N", "0521760E"],
         ELOVU: ["245721.3N", "0542017.5E"],
-        ELUDA: ["235107N", "0552905E"],
-        ELUDA: ["235107N", "0552905E"],
         ELUDA: ["235107N", "0552905E"],
         EMATA: ["242315N", "0565734E"],
         EMERU: ["244829.0N", "0550303.0E"],
+        EMISA: ["254658.35N", "0514206.60E"],
         EMIXI: ["242105N", "0520019E"],
         EMOPI: ["252620.0N", "0560900.0E"],
-        EMOTA: ["255254N", "0542414E"],
         EMOTA: ["255254N", "0542414E"],
         ENANO: ["252360.2N", "0522560.38E"],
         ENEGA: ["250556N", "0560601E"],
         ESROM: ["232424N", "0525729E"],
         FJV: ["250602.6N", "0562116.4E"],
         GABKO: ["260404N", "0554755E"],
-        GABKO: ["260404N", "0554755E"],
+        GERAR: ["240601N", "0573628E"],
         GERUL: ["250001.4N", "0542644.4E"],
-        GEVIV: ["244118N", "0545000E"],
         GEVIV: ["244118N", "0545000E"],
         GEXAN: ["241295N", "0565681E"],
         GIBIB: ["255507N", "0541712E"],
         GIDIL: ["251770N", "0564939E"],
         GIDIS: ["243600.0N", "0555600.0E"],
-        GIDIS: ["243600.0N", "0555600.0E"],
-        GIDOB: ["244445.3N", "0535952.6E"],
-        GIDOB: ["244445.3N", "0535952.6E"],
         GIDOB: ["244445.3N", "0535952.6E"],
         GISMO: ["244743N", "0562236E"],
         GODKI: ["254122N", "0534347E"],
-        GODKI: ["254122N", "0534347E"],
         GOGMI: ["230226N", "0553198E"],
         GOLGU: ["231051N", "0523109E"],
-        GOLGU: ["231051N", "0523109E"],
-        GOMTA: ["251115N", "0563447E"],
+        GOLPA: ["242330.0N", "0535854.0E"],
         GOMTA: ["251115N", "0563447E"],
         GONVI: ["254239.8N", "0545630.5E"],
         IMGOV: ["221846N", "0533640E"],
         IMGUX: ["252950N", "0531428E"],
-        IMGUX: ["252950N", "0531428E"],
-        IMGUX: ["252950N", "0531428E"],
         IMKUD: ["241513N", "0535956E"],
-        IMLIP: ["243648N", "0543549E"],
-        IMLIP: ["243648N", "0543549E"],
         IMLIP: ["243648N", "0543549E"],
         IMLOT: ["251714N", "0570806E"],
         IMPED: ["245824.5N", "0560406.2E"],
-        IMPED: ["245824.5N", "0560406.2E"],
-        IMPED: ["245824.5N", "0560406.2E"],
-        IMPED: ["245824.5N", "0560406.2E"],
         ITBON: ["251426N", "0555257E"],
-        ITBON: ["251426N", "0555257E"],
-        ITBUL: ["254910N", "0541227E"],
-        ITBUL: ["254910N", "0541227E"],
         ITBUL: ["254910N", "0541227E"],
         ITKEV: ["250104N", "0534526E"],
         ITKUN: ["223751N", "0553956E"],
-        ITLAP: ["254925N", "0555010E"],
         ITLAP: ["254925N", "0555010E"],
         ITMUB: ["255932N", "0522404E"],
         ITOMI: ["250152N", "0541151E"],
         ITRAX: ["241248.0N", "0554749.0E"],
         IVOXI: ["251239.6N", "0552513.1E"],
-        IVOXI: ["251239.6N", "0552513.1E"],
-        IVOXI: ["251239.6N", "0552513.1E"],
-        IVOXI: ["251239.6N", "0552513.1E"],
-        IVOXI: ["251239.6N", "0552513.1E"],
-        IVOXI: ["251239.6N", "0552513.1E"],
-        IVURO: ["251940N", "0560915E"],
         IVURO: ["251940N", "0560915E"],
         KANIP: ["241040.0N", "0552042.0E"],
         KAPAX: ["254229N", "0515131E"],
         KAPUM: ["245815N", "0533450E"],
-        KAPUM: ["245815N", "0533450E"],
-        KAPUM: ["245815N", "0533450E"],
+        KATUS: ["251599N", "0574701E"],
         KATIT: ["224928N", "0522923E"],
-        KAXOB: ["245423N", "0532450E"],
         KAXOB: ["245423N", "0532450E"],
         KHM: ["264578N", "0555446E"],
         KIPOK: ["243611N", "0560719E"],
-        KIPOK: ["243611N", "0560719E"],
-        KIPOK: ["243611N", "0560719E"],
-        KIPOK: ["243611N", "0560719E"],
+        KIROP: ["243000.00N", "0574700.00E"],
         KIS: ["263151N", "0535774E"],
-        KIVUS: ["254522N", "0540032E"],
-        KIVUS: ["254522N", "0540032E"],
         KIVUS: ["254522N", "0540032E"],
         KOBIM: ["233315N", "0562702E"],
         KUGTO: ["243231N", "0542224E"],
-        KUGTO: ["243231N", "0542224E"],
-        KUGTO: ["243231N", "0542224E"],
-        KUGTO: ["243231N", "0542224E"],
         KULBA: ["251326N", "0560153E"],
-        KULBA: ["251326N", "0560153E"],
+        KUMLA: ["262615N", "0520837E"],
         KUMSI: ["245050N", "0523619E"],
         KUMUN: ["254000N", "0551512E"],
         KUPMA: ["245148N", "0562648E"],
@@ -846,20 +917,15 @@
         KUPSA: ["250475N", "0521186E"],
         KURTA: ["234209N", "0554901E"],
         KURTU: ["252211N", "0554625E"],
-        KURTU: ["252211N", "0554625E"],
         KUSBA: ["251634N", "0532847E"],
-        KUSBA: ["251634N", "0532847E"],
-        KUSEN: ["251828.0N", "0562340.0E"],
         KUSEN: ["251828.0N", "0562340.0E"],
         KUTLI: ["245151.3N", "0545618.0E"],
         KUVDA: ["244309N", "0543909E"],
-        KUVDA: ["244309N", "0543909E"],
+        LABOP: ["261912N", "520449E"],
         LABRI: ["240344.0N", "0553842.0E"],
         LABSA: ["230189N", "0555509E"],
         LAGTA: ["250602N", "0553315E"],
-        LAGTA: ["250602N", "0553315E"],
         LAKLU: ["232259N", "0570402E"],
-        LALDO: ["251806N", "0563600E"],
         LALDO: ["251806N", "0563600E"],
         LEVNA: ["261901N", "0533320E"],
         LONUT: ["241520N", "0530149E"],
@@ -883,6 +949,7 @@
         MIVEK: ["245240N", "0561516E"],
         MOBET: ["264411N", "0560913E"],
         MOBUL: ["251559N", "0541841E"],
+        MODOG: ["261007N", "0515935E"],
         MOGIM: ["244053N", "0542820E"],
         MURGU: ["243212.8N", "0560319.9E"],
         MUSAP: ["241754N", "0555245E"],
@@ -908,6 +975,7 @@
         ORLUP: ["260686N", "0523226E"],
         ORMID: ["253354N", "0525434E"],
         ORNEL: ["240311.7N", "0551942.1E"],
+        ORPAX: ["242628.0N", "0534533.0E"],
         ORSAR: ["260430N", "0535730E"],
         ORSIS: ["252801N", "0521661E"],
         OTIKI: ["253229N", "0541441E"],
@@ -928,6 +996,7 @@
         PUTSO: ["232062N", "0565336E"],
         PUVAL: ["253558.0N", "0554258.0E"],
         PUXIL: ["244117N", "0563145E"],
+        RABLA: ["261505.73N", "0514833.68E"],
         RADEB: ["261167N", "0554731E"],
         RAGDO: ["252212N", "0535106E"],
         RALMI: ["254505N", "0533033E"],
@@ -940,6 +1009,7 @@
         RIDAP: ["252553.7N", "0543701.2E"],
         RIGIL: ["230146N", "0551430E"],
         RORON: ["252053N", "0530916E"],
+        ROSAN: ["263129.13N", "0515220.05E"],
         ROTAG: ["255388N", "0523635E"],
         ROVOS: ["241825.0N", "0552143.0E"],
         RUDAT: ["244605.1N", "0561714.1E"],
@@ -955,6 +1025,7 @@
         SISOB: ["253150N", "0534509E"],
         SIXIV: ["242009N", "0550439E"],
         SODEX: ["234954N", "0553202E"],
+        SOGAN: ["263915N", "0515408E"],
         SOKAK: ["255131N", "0534251E"],
         SOLUD: ["243223N", "0564421E"],
         SUTVO: ["251531N", "0562153E"],
@@ -976,6 +1047,7 @@
         TUDIS: ["251009N", "0550825E"],
         TUKSI: ["252006N", "0560525E"],
         TULON: ["245511.4N", "0544739.1E"],
+        TULBU: ["230009N", "571846E"],
         TUMAK: ["255031N", "0531108E"],
         UKILI: ["243815.5N", "0535636.4E"],
         UKNAV: ["244307N", "0542955E"],
@@ -993,22 +1065,26 @@
         VAVIM: ["241535.1N", "0553622.9E"],
         VATIG: ["243659.0N", "0533241.0E"],
         VAXAS: ["244308N", "0561807E"],
+        VEDED: ["260558.26N", "0514627.91E"],
         VEDOM: ["260116N", "0524494E"],
         VEGEK: ["251837N", "0540803E"],
         VEKAL: ["250333.5N", "0550340.5E"],
         VEKOV: ["245750N", "0544925E"],
+        VELAK: ["261307N", "0521821E"],
+        VELAM: ["255426.12N", "0514347.13E"],
         VUTAN: ["255026N", "0515230E"],
         VUTEB: ["253644.6N", "0545149.4E"],
+        VELOD: ["234618N", "0573458E"],
         VUXOD: ["242005N", "0543625E"],
       };
 
     const airways = {
      "A777": ["TONVO", "BUBAS", "NADSO"], //EXTERNAL
      "A791-": ["IMLOT", "GIDIL", "LALDO"], //EXTERNA
-     "A791": ["LALDO", "GIDIL", "IMLOT"],
+     "A791": ["LALDO", "GIDIL", "IMLOT", "KATUS"],
      "B415": ["DOH", "KUPSA", "BUNDU", "ASNAX", "EGPOG", "UKILI", "KUGTO", "RURAL", "SIXIV"],
      "B505": ["LALDO", "NADSO"], //EXTERNAL
-     "B540": ["DEGNU", "PASOV", "KUPMA", "ORKOB", "MIVEK"],
+     "B540": ["GERAR", "DEGNU", "PASOV", "KUPMA", "ORKOB", "MIVEK"],
      "B541": ["KIS", "ORSAR"], //EXTERNAL
      "G462": ["ROVOS", "TUBGO", "ULODA", "KUVDA", "ORBOL", "UKUVO", "OXARI", "PURLI", "TUMAK"],
      "G666": ["LVA", "DATUT", "ELIRA", "ORSAR", "LUDAM", "KIVUS", "TOTKU", "ULIVA", "VEGEK", "REVAV", "ITOMI", "ELOVU"],
@@ -1019,13 +1095,12 @@
      "L313": ["EGPEP", "KULBA", "IMPED", "KIPOK"],
      "L519": ["PATAT", "EGPEP", "ITLAP", "PUVAL", "DETGU", "SERSA", "IVOXI", "VEKAL", "KUTLI", "GEVIV", "ODKUN", "VUXOD", "ATUDO"],
      "L710": ["UKRAG", "MEMTU", "GOGMI", "ITKUN"],     
-     "L768": ["ALPOB", "ROTAG", "ITMUB"],
+     "L768": ["ALPOB", "ROTAG", "ITMUB", "MODOG", "RABLA"],
      "M317": ["RADEB", "SERDU"], //EXTERNAL
      "M318-": ["ATUDO" ,"MUSEN", "BOPIT", "DANOK", "ESROM", "GOLGU"],
      "M318": ["MEDPO", "KATIT", "MUXIT", "GOLGU", "ESROM", "DANOK", "BOPIT", "MUSEN", "ATUDO", "RURAL", "IMLIP", "KUVDA", "TULON", "VEKOV", "EGTAG", "MITIX", "LOVEM", "TOVIV", "DAVMO", "GABKO", "RADEB", "KHM"],
      "M324": ["BND", "MOBET", "PATAT"], //EXTERNAL
      "M428": ["IVURO", "SUTVO", "GOMTA", "TARBO"],
-     "M428": ["IVURO", "SUTVO", "GOMTA"],
      "M430": ["OXARI", "TAGDU", "RORON", "PUTIB", "TOSNA", "DOH"],
      "M550": ["MIGMA", "BOPEK", "RIBOT", "GOLGU"],
      "M557": ["IVOXI", "MITIX", "RIDAP", "OTIKI", "TOTKU", "GODKI", "RALMI", "TUMAK"],
@@ -1034,23 +1109,23 @@
      "M628": ["MIGMA", "KATIT", "PEKEM", "RIGIL"],
      "M628-":["LABSA", "GOGMI", "LUDID", "RIGIL", "PEKEM", "KATIT"], 
      "M677-": ["LALDO", "KUSEN", "IVURO", "TUKSI"],
-     "M677": ["UKNEP", "DEGSO", "OBNET", "LUDAM", "ITBUL", "DIXAM", "VUTEB", "LOVEM", "KURTU", "MISEG", "TUKSI", "IVURO", "KUSEN", "LALDO", "GIDIL"],
-     "M762": ["GEXAN", "TAPRA", "VAXAS", "RUDAT", "MIVEK" ],
+     "M677": ["SOGAN", "UKNEP", "DEGSO", "OBNET", "LUDAM", "ITBUL", "DIXAM", "VUTEB", "LOVEM", "KURTU", "MISEG", "TUKSI", "IVURO", "KUSEN", "LALDO"],
+     "M762": ["VELOD", "GEXAN", "TAPRA", "VAXAS", "RUDAT", "MIVEK" ],
      "N300": ["DOH", "KUPRO", "MIBRU", "RUGIS", "KAXOB", "GIDOB", "ORBOL", "LORID", "VEKOV", "OBREV", "LAGTA", "RUKOR", "NOLSU", "SUTVO", "LALDO"],
      "N300-": ["RUKOR", "LAGTA", "OBREV"],
      "N317": ["MENSA", "NOLSU", "REXEV", "NADNI"],
-     "N318": ["VUTAN", "RESAR", "OVONA", "PUTIB", "BOXOT", "KAPUM", "BOSEV", "MOGIM", "IMLIP", "ELEPO", "SIXIV", "KANIP", "LABRI", "EGROK", "LAKLU"],
-     "N563": ["MEKNA", "KURTA", "SODEX", "ELUDA", "NOBTO", "SIGMO", "VUXOD", "UMIBU", "KUGTO", "BOSEV", "ITKEV", "KUSBA", "TAGDU", "IMGUX", "ALPOB"],
-     "N571": ["ASNIB", "MENSA", "LUBAT", "ENEGA", "RUKOR", "IVOXI", "TUDIS", "SENPA", "RUDUK", "ULIVA", "SISOB", "PURLI", "ALPOB"],
-     "N685": ["KAPAX", "ORSIS", "ENANO", "TOSNA", "UMEVU", "KAPUM", "GIDOB", "SUVDU", "RURAL", "ODKUN", "NAPMA", "ORNEL", "RETAS", "KOBIM", "PUTSO"],
+     "N318": ["VELAM", "VUTAN", "RESAR", "OVONA", "PUTIB", "BOXOT", "KAPUM", "BOSEV", "MOGIM", "IMLIP", "ELEPO", "SIXIV", "KANIP", "LABRI", "EGROK", "LAKLU"],
+     "N563": ["TULBU", "MEKNA", "KURTA", "SODEX", "ELUDA", "NOBTO", "SIGMO", "VUXOD", "UMIBU", "KUGTO", "BOSEV", "ITKEV", "KUSBA", "TAGDU", "IMGUX", "ALPOB"],
+     "N571": ["KIROP", "ASNIB", "MENSA", "LUBAT", "ENEGA", "RUKOR", "IVOXI", "TUDIS", "SENPA", "RUDUK", "ULIVA", "SISOB", "PURLI", "ALPOB"],
+     "N685": ["EMISA", "KAPAX", "ORSIS", "ENANO", "TOSNA", "UMEVU", "KAPUM", "GIDOB", "SUVDU", "RURAL", "ODKUN", "NAPMA", "ORNEL", "RETAS", "KOBIM", "PUTSO"],
      "P307": ["SERSA", "PAVAG", "ITBON", "KULBA", "NOLSU", "TONVO", "PURNI"],
      "P440": ["ALGUX", "ASRAT", "ELIGA", "EMIXI"],
      "P555": ["OBVOM", "LONUT", "IMKUD", "RAPNO", "ATUDO"],
-     "P559": ["UKUBU", "TOMSO", "NALPO", "SOKAK", "KIVUS", "PUSOT", "AMBOV", "VUTEB"],
-     "P574": ["EMATA", "SOLUD", "PUXIL", "GISMO", "MIVEK", "IMPED", "NORGA", "RUKOR", "SERSA", "TOVIV", "KUMUN"],
+     "P559": ["ROSAN", "KUMLA", "ASPAK", "UKUBU", "TOMSO", "NALPO", "SOKAK", "KIVUS", "PUSOT", "AMBOV", "VUTEB"],
+     "P574": ["DAPOK", "EMATA", "SOLUD", "PUXIL", "GISMO", "MIVEK", "IMPED", "NORGA", "RUKOR", "SERSA", "TOVIV", "KUMUN"],
      "P574-": ["DAPER", "DENSA"],
-     "P699": ["TUKSI", "PAVAG", "IVOXI", "TUDIS", "EGTAG", "NABIX", "MOBUL", "VEGEK", "RAGDO", "OXARI", "IMGUX", "ORMID", "DASLO", "ALKAN"],
-     "P899": ["PAXIM", "ITRAX", "VAVIM", "ROVOS", "SIXIV", "UMIBU", "MEKRI", "KUMSI", "TOVOX", "KUPSA"],
+     "P699": ["TUKSI", "PAVAG", "IVOXI", "TUDIS", "EGTAG", "NABIX", "MOBUL", "VEGEK", "RAGDO", "OXARI", "IMGUX", "ORMID", "DASLO", "ALKAN", "BONAN", "VEDED"],
+     "P899": ["VELOD", "PAXIM", "ITRAX", "VAVIM", "ROVOS", "SIXIV", "UMIBU", "MEKRI", "KUMSI", "TOVOX", "KUPSA"],
      "Q308": ["ASPED", "PEDOG", "MURGU", "KIPOK", "RUDAT", "ORKOB"],
      "Q311": ["IVOXI", "OBREV", "EMERU", "TONKI", "NABUN"],
      "Q312": ["REVAV", "GERUL"],
@@ -1071,7 +1146,7 @@
      "R784": ["EGMIT", "LEVNA", "ORSAR", "GIBIB", "EMOTA", "TATLA", "GONVI", "ALRAR", "TOVIV", "ALSIL", "EMOPI", "KUSEN"],
      "T509": ["PASOV","MENSA", "FJV"],
      "T560": ["ORNEL", "ELUDA"],
-     "T602": ["TUMAK", "VEDOME", "ORLUP"],
+     "T602": ["TUMAK", "VEDOME", "ORLUP", "VELAK", "LABOP", "BOPOV"],
      "T891": ["ORKOB", "LUBAT", "NOLSU"],
      "Y552": ["NABUN", "SIGMO", "NAPMA", "TUBGO", "UKVAK", "RUKOR"],
      "Z522": ["KAPUM", "ALNEV"]
@@ -1145,7 +1220,7 @@
       "OMAA,AD-KUMUN": ["H", "M"],
       "OMAA,AD-LABRI": ["A"],
       "OMAA,AD-ORMID": ["D", "C"],
-      "OMAA,AD-ORSAR": ["H", "M"],
+      "OMAA,AD-ORSAR": ["D", "W"],
       "OMAA,AD-PEKEM": ["A", "L"],
       "OMAA,AD-RETAS": ["A"],
       "OMAA,AD-RIBOT": ["L"],
@@ -1192,8 +1267,8 @@
       "OMFJ-TANSU": ["E", "A", "L"],
       "OMFJ-TONVO": ["R"],
       "OMFJ-TOSNA": ["R", "H", "D", "C"],
-      "OMFJ-TUMAK": ["R", "H", "D", "C"],
-      "OMRK-ALPOB": ["H", "D", "C"],
+      "OMFJ-TUMAK": ["H", "D", "C"],
+      "OMRK-ALPOB": ["R", "H", "D", "C"],
       "OMRK-GABKO": ["R"],
       "OMRK-GOMTA": ["R"],
       "OMRK-KATIT": ["H", "L"],
@@ -1224,15 +1299,15 @@
       "KATIT-OMSJ": ["L", "H"],
       "KUPRO-OMAA": ["S", "G"],
       "KUPRO-OMAD": ["S", "G"],
-      "KUPRO-OMAL": ["S", "G", "H"],
+      "KUPRO-OMAL": ["S", "G"],
       "MENSA-OMFJ": ["E", "Y"],
       "MENSA-OMRK": ["E", "Y"],
       "MENSA-OMSJ": ["E", "Y"],
       "MUSAP-OMDB": ["E", "Y"],
-      "MUSAP-OMDW": ["A", "E", "Y"],
-      "MUSAP-OMFJ": ["A", "E", "Y"],
-      "MUSAP-OMRK": ["A", "E", "Y"],
-      "MUSAP-OMSJ": ["A", "E", "Y"],
+      "MUSAP-OMDW": ["E", "Y"],
+      "MUSAP-OMFJ": ["E", "Y"],
+      "MUSAP-OMRK": ["E", "Y"],
+      "MUSAP-OMSJ": ["E", "Y"],
       "NALPO-OMDB": ["N", "W"],
       "NALPO-OMDW": ["N", "W"],
       "NALPO-OMDW*": ["N", "D"],
@@ -1246,12 +1321,12 @@
       "OBNET-OMRK": ["N", "W"],
       "OBNET-OMSJ": ["N", "W"],
       "ORSAR-OMAA": ["N", "D"],
-      "ORSAR-OMAA,AD": ["N", "D"],
+      "ORSAR-OMAA,AD*": ["N", "D"],
       "ORSAR-OMAA,AD": ["N", "H"],
       "ORSAR-OMAD": ["N", "D"],
       "ORSAR-OMAL": ["N", "H"],
       "ORSAR-OMDB": ["N", "W"],
-      "ORSAR-OMDW": ["N", "D"],
+      "ORSAR-OMDW*": ["N", "D"],
       "ORSAR-OMDW": ["N", "W"],
       "ORSAR-OMFJ": ["N", "H", "R"],
       "ORSAR-OMRK": ["N", "W"],
@@ -1296,7 +1371,7 @@
       "TAPRA-OMDW": ["E", "Y"],
       "TOSNA-OMAA": ["S", "G"],
       "TOSNA-OMAD": ["S", "G"],
-      "TOSNA-OMAL": ["S", "G"],
+      "TOSNA-OMAL": ["S", "G", "H"],
       "VAXAS-OMDB": ["E", "Y"],
       "VAXAS-OMDW": ["E", "Y"],
       "VAXAS-OMRK": ["E", "Y"],
@@ -1540,12 +1615,12 @@
         "OBNET-OMRK": ["OBNET", "M677", "ITBUL", "L305", "EMOTA", "R784", "ALSIL"],
         "OBNET-OMSJ": ["OBNET", "M677", "ITBUL", "L305", "EMOTA", "R784", "GONVI"],
         "ORSAR-OMAA": ["ORSAR", "DCT", "UKILI"],
-        "ORSAR-OMAA,AD": ["ORSAR", "G666", "ELOVU"],
+        "ORSAR-OMAA,AD*": ["ORSAR", "G666", "ELOVU"],
         "ORSAR-OMAA,AD": ["ORSAR", "R784", "TATLA", "L223", "VUTEB", "Q569", "OBREV", "Q311", "EMERU"],
         "ORSAR-OMAD": ["ORSAR", "DCT", "GIDOB"],
         "ORSAR-OMAL": ["ORSAR", "R784", "TATLA", "L223", "VUTEB", "Q569", "OBREV", "Q311", "TONKI", "DCT", "KANIP"],
         "ORSAR-OMDB": ["ORSAR", "R784", "TATLA", "L223", "VUTEB"],
-        "ORSAR-OMDW": ["ORSAR", "G666", "ELOVU"],
+        "ORSAR-OMDW*": ["ORSAR", "G666", "ELOVU"],
         "ORSAR-OMDW": ["ORSAR", "R784", "GONVI"],
         "ORSAR-OMFJ": ["ORSAR", "R784", "KUSEN"],
         "ORSAR-OMRK": ["ORSAR", "R784", "ALSIL"],
@@ -1672,8 +1747,15 @@
         opacity: 0.6
       }
     );
-*/
 
+     const baseMapLayer = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+       {
+         opacity: 0.8
+       }
+     );
+
+
+*/
       const baseMapLayer = L.tileLayer(
         "https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}",
         {
@@ -1844,17 +1926,34 @@ let extraLabelMarkers = [];
         }))
         .filter((pt) => pt.lat !== null && pt.lon !== null);
 
+ 
       const map = L.map("map", {
         zoomControl: false,
         attributionControl: false,
         scrollWheelZoom: true,
         wheelPxPerZoomLevel: 200, // <-- Increase this for smoother zoom
+        zoomSnap: 0,              // 🔹 allow fractional zoom
+        zoomDelta: 0.2            // 🔹 smallest step = 0.1
       }).setView(latlngs[0], 7);
 
       let mapLayerVisible = false;
 
-      //baseMapLayer.addTo(map);
+      const zoomSlider = document.getElementById("zoomSlider");
+      const zoomValue = document.getElementById("zoomValue");
 
+      zoomSlider.value = map.getZoom();
+      zoomValue.textContent = map.getZoom().toFixed(1);
+
+      map.on("zoom", () => {
+        zoomSlider.value = map.getZoom();
+        zoomValue.textContent = map.getZoom().toFixed(1);
+      });
+
+      zoomSlider.addEventListener("input", () => {
+        map.setZoom(parseFloat(zoomSlider.value));
+        map.setZoom(z);
+        zoomValue.textContent = z.toFixed(1);
+      });
 
 
 document.getElementById("toggleMapBtn").addEventListener("click", function () {
@@ -1942,6 +2041,29 @@ function renderTriangles() {
     triangleLayers.push(triangle);
   });
 }
+
+
+/*
+Object.entries(extraPoints).forEach(([name, [latDMS, lonDMS]]) => {
+  const lat = convertDMSToDecimal(latDMS);
+  const lon = convertDMSToDecimal(lonDMS);
+
+  if (lat !== null && lon !== null) {
+    const labelMarker = L.marker([lat, lon], {
+      icon: L.divIcon({
+        className: 'coord-label',
+        direction: "top",
+        html: `<span>${name}</span>`,
+        iconSize: [0, 0],
+        iconAnchor: [0, 0],
+      })
+    }).addTo(map);
+
+    extraLabelMarkers.push(labelMarker);
+  }
+});
+*/
+
 
 Object.entries(extraPoints).forEach(([name, [latDMS, lonDMS]]) => {
   const lat = convertDMSToDecimal(latDMS);
@@ -2039,6 +2161,30 @@ Object.entries(extraPoints).forEach(([name, [latDMS, lonDMS]]) => {
 
         displayExpandedRoute(from, to, routeKey);
       }
+
+function displayExpandedRouteByKey(routeKey) {
+  const [from, to] = routeKey.split("-");
+  const routeSteps = routes[routeKey];
+
+  if (!routeSteps) {
+    alert("Route not found!");
+    return;
+  }
+
+  // Inject into routeMap for reuse
+  if (!routeMap[from]) routeMap[from] = {};
+  routeMap[from][to] = routeSteps;
+
+  // Update existing route tooltip
+  document.getElementById("routeTooltip").textContent = `Route: ${routeSteps.join(" ")}`;
+
+  // Expand the route for the new tooltip
+  const expandedRoute = expandRoute(routeSteps, airways);
+  document.getElementById("expandedRouteTooltip").textContent = `${expandedRoute.join(" ")}`;
+
+  // Call the original function to display the route
+  displayExpandedRoute(from, to, routeKey);
+}
 
       //------------------------------------------
       function displayExpandedRoute(from, to, routeKey) {
@@ -2291,67 +2437,107 @@ Object.entries(extraPoints).forEach(([name, [latDMS, lonDMS]]) => {
         const activeSectorCodes = new Set(); // 🔹 Track which sectors are active
         const showColorsCheckbox = document.getElementById("showSectorColors");
 
-        showColorsCheckbox.addEventListener("change", () => {
-          Object.keys(sectorLayers).forEach((code) => {
-            map.removeLayer(sectorLayers[code]);
-            delete sectorLayers[code];
-          });
+showColorsCheckbox.addEventListener("change", () => {
+  Object.keys(sectorLayers).forEach((code) => {
+    if (sectorLayers[code].polygon) map.removeLayer(sectorLayers[code].polygon);
+    if (sectorLayers[code].label) map.removeLayer(sectorLayers[code].label);
+    delete sectorLayers[code];
+  });
 
-          if (showColorsCheckbox.checked) {
-            activeSectorCodes.forEach((code) => {
-              if (sectorPolygons[code]) {
-                const color = sectorColors[code] || "white";
-                const polygon = L.polygon(sectorPolygons[code], {
-                  color,
-                  weight: 1.5,
-                  dashArray: "3 6",
-                  fillColor: color,
-                  fillOpacity: 0.2,
-                  opacity: 0.9,
-                }).addTo(map);
-                sectorLayers[code] = polygon;
-              }
-            });
-          }
+  if (showColorsCheckbox.checked) {
+    activeSectorCodes.forEach((code) => {
+      if (sectorPolygons[code]) {
+        const color = sectorColors[code] || "white";
+        const polygon = L.polygon(sectorPolygons[code], {
+          color,
+          weight: 1.5,
+          dashArray: "3 6",
+          fillColor: color,
+          fillOpacity: 0.2,
+          opacity: 0.9,
+        }).addTo(map);
+
+        // Calculate simple centroid (average of coordinates)
+        let sumLat = 0, sumLng = 0;
+        sectorPolygons[code].forEach(([lat, lng]) => {
+          sumLat += lat;
+          sumLng += lng;
         });
+        const centerLat = sumLat / sectorPolygons[code].length;
+        const centerLng = sumLng / sectorPolygons[code].length;
 
-        document
-          .querySelectorAll(
-            '#sectorOptions input[type="checkbox"]:not(#showSectorColors)'
-          )
-          .forEach((cb) => {
-            cb.addEventListener("change", () => {
-              const code = cb.value;
+        // Add label at center
+        const label = L.tooltip({
+          permanent: true,
+          direction: 'center',
+          className: 'sector-label',
+          offset: [0, 0],
+        }).setLatLng([centerLat, centerLng])
+          .setContent(code)
+          .addTo(map);
 
-              if (cb.checked) {
-                activeSectorCodes.add(code);
-                if (
-                  showColorsCheckbox.checked &&
-                  sectorPolygons[code] &&
-                  !sectorLayers[code]
-                ) {
-                  const color = sectorColors[code] || "white";
-                  const polygon = L.polygon(sectorPolygons[code], {
-                    color,
-                    weight: 1.5,
-                    dashArray: "3 6",
-                    fillColor: color,
-                    fillOpacity: 0.2,
-                    opacity: 0.9,
-                  }).addTo(map);
-                  sectorLayers[code] = polygon;
-                }
-              } else {
-                activeSectorCodes.delete(code);
-                if (sectorLayers[code]) {
-                  map.removeLayer(sectorLayers[code]);
-                  delete sectorLayers[code];
-                }
-              }
-            });
+        sectorLayers[code] = { polygon, label };
+      }
+    });
+  }
+});
+
+document
+  .querySelectorAll(
+    '#sectorOptions input[type="checkbox"]:not(#showSectorColors)'
+  )
+  .forEach((cb) => {
+    cb.addEventListener("change", () => {
+      const code = cb.value;
+
+      if (cb.checked) {
+        activeSectorCodes.add(code);
+        if (
+          showColorsCheckbox.checked &&
+          sectorPolygons[code] &&
+          !sectorLayers[code]
+        ) {
+          const color = sectorColors[code] || "white";
+          const polygon = L.polygon(sectorPolygons[code], {
+            color,
+            weight: 1.5,
+            dashArray: "3 6",
+            fillColor: color,
+            fillOpacity: 0.2,
+            opacity: 0.9,
+          }).addTo(map);
+
+          // Calculate simple centroid (average of coordinates)
+          let sumLat = 0, sumLng = 0;
+          sectorPolygons[code].forEach(([lat, lng]) => {
+            sumLat += lat;
+            sumLng += lng;
           });
+          const centerLat = sumLat / sectorPolygons[code].length;
+          const centerLng = sumLng / sectorPolygons[code].length;
 
+          // Add label at center
+          const label = L.tooltip({
+            permanent: true,
+            direction: 'center',
+            className: 'sector-label',
+            offset: [0, 0],
+          }).setLatLng([centerLat, centerLng])
+            .setContent(code)
+            .addTo(map);
 
+          sectorLayers[code] = { polygon, label };
+        }
+      } else {
+        activeSectorCodes.delete(code);
+        if (sectorLayers[code]) {
+          if (sectorLayers[code].polygon) map.removeLayer(sectorLayers[code].polygon);
+          if (sectorLayers[code].label) map.removeLayer(sectorLayers[code].label);
+          delete sectorLayers[code];
+        }
+      }
+    });
+  });
 
 let coordsVisible = true;
 
@@ -2367,6 +2553,7 @@ document.getElementById("toggleWaypointsBtn").addEventListener("click", function
 
   this.textContent = coordsVisible ? "Names: ON" : "Names: OFF";
 });
+
 
         // High group toggle-------------------
         document
@@ -2388,6 +2575,7 @@ document.getElementById("toggleWaypointsBtn").addEventListener("click", function
         map.on("zoomend", renderTriangles);
         map.fitBounds(polyline.getBounds());
       };
+
     </script>
   </body>
 </html>
