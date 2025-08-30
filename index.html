@@ -52,6 +52,7 @@
         line-height: 1;
       }
 
+/*displaying sector letter in colored area*/
 .sector-label {
   background: none !important;
   border: none !important;
@@ -116,7 +117,7 @@
         border-radius: 8px;
         padding: 8px;
         width: 150px;
-        max-height: 53%;
+        max-height: 92%;
         overflow: hidden;
         //overflow-y: auto;
         z-index: 1000;
@@ -232,25 +233,25 @@
         background-color: transparent;
       }
 
-/*--display full route fix names at the bottom of the screen */
-#expandedRouteTooltip {
-  position: absolute;
-  bottom: 23px;
-  left: 50%;
-  transform: translateX(-50%);
-  padding: 6px 12px;
-  background: rgba(0, 0, 0, 0.9);
-  color: white;
-  font-size: 14px;
-  font-family: monospace;
-  border-radius: 12px;
-  z-index: 1001;
-  max-width: 90%;
-  text-align: center;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
+      /*--display full route fix names at the bottom of the screen */
+      #expandedRouteTooltip {
+        position: absolute;
+        bottom: 23px;
+        left: 50%;
+        transform: translateX(-50%);
+        padding: 6px 12px;
+        background: rgba(0, 0, 0, 0.9);
+        color: white; 
+        font-size: 14px;
+        font-family: monospace;
+        border-radius: 12px;
+        z-index: 1001;
+        max-width: 90%;
+        text-align: center;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
 
       /*--display route with airway names at the bottom of the screen */
       #routeTooltip {
@@ -391,8 +392,15 @@
     <button id="resetViewBtn" class="map-btn">Clear</button>
     <button id="toggleMapBtn" class="map-btn">Toggle Map</button>
     <button id="toggleWaypointsBtn" class="map-btn">Names: ON</button>
-
     <!--<button id="toggleWaypointBtn">Toggle Waypoints</button>-->
+
+    <!--Table Toggle Button -->
+    <button id="toggleTableBtn" 
+            style="position:absolute; top:2px; left:283px; z-index:1500;
+                   background:rgba(255,255,255,0.8); border:1px solid #888;
+                   border-radius:8px; padding:5px 8px; cursor:pointer;">
+      Sector Info ▸
+    </button>
 
     <div id="map"></div>
     <div id="sectorTooltip">Sectors:</div>
@@ -400,27 +408,27 @@
     <!--<div id="routeTooltip">Route: —</div> -->
     <--!to display "Route:-" on tooltip -->
 
-    <div id="sectorTablePanel" 
-         style="position:absolute; bottom:10px; left:5px; 
-                background:rgba(0,0,0,0.6); color:white; 
-                padding:10px; border-radius:8px; 
-                font-size:11px; font-family:sans-serif;
-                z-index:1200;">
-      <table id="sectorTable" border="1" cellpadding="5" cellspacing="0" style="border-collapse:collapse; background:#2c3e50; color:white;">
-        <thead>
-          <tr>
-            <th>Sectors</th>
-            <th>Limit</th>
-            <th>Freq</th>
-          </tr>
-        </thead>
-        <tbody>
-        </tbody>
-      </table>
-    </div>
+<!-- Floating Table -->
+<div id="sectorTablePanel"
+     style="position:absolute; top:32px; left:190px; 
+            background:rgba(0,0,0,0.6); color:white;
+            padding:10px; border-radius:8px; font-size:12px; 
+            font-family:sans-serif; z-index:1500; display:none;">
+  <table id="sectorTable" border="1" cellpadding="5" cellspacing="0"
+         style="border-collapse:collapse; background:#2c3e50; color:white;">
+    <thead>
+      <tr>
+        <th>Sectors</th>
+        <th>Limit</th>
+        <th>Freq</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</div>
 
     <div id="zoomSliderPanel" style="position:absolute; bottom:15px; right:15px; 
-                background:rgba(0,0,0,0.6); padding:8px; border-radius:10px; 
+                background:rgba(0,0,0,0.1); padding:8px; border-radius:10px; 
                 z-index:1500; color:white; font-size:12px;font-family:sans-serif;">
       <label for="zoomSlider">Zoom:</label>
       <input type="range" id="zoomSlider" min="5" max="12" step="0.2" value="7">
@@ -465,9 +473,23 @@
 
   // Call once on load
   renderSectorTable();
+
+// --- Table toggle logic ---
+const toggleBtn = document.getElementById("toggleTableBtn");
+const tablePanel = document.getElementById("sectorTablePanel");
+
+toggleBtn.addEventListener("click", () => {
+  if (tablePanel.style.display === "none") {
+    tablePanel.style.display = "block";
+    toggleBtn.textContent = "Sector Info ▼";
+  } else {
+    tablePanel.style.display = "none";
+    toggleBtn.textContent = "Sector Info ▸";
+  }
+});
+
+
 </script>
-
-
 
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script>
@@ -2042,6 +2064,29 @@ function renderTriangles() {
   });
 }
 
+// --- Make sector table draggable ---
+function makeDraggable(el) {
+  let offsetX, offsetY, isDown = false;
+
+  el.addEventListener("mousedown", (e) => {
+    isDown = true;
+    offsetX = el.offsetLeft - e.clientX;
+    offsetY = el.offsetTop - e.clientY;
+  });
+
+  document.addEventListener("mouseup", () => isDown = false);
+
+  document.addEventListener("mousemove", (e) => {
+    if (isDown) {
+      el.style.left = (e.clientX + offsetX) + "px";
+      el.style.top  = (e.clientY + offsetY) + "px";
+      el.style.bottom = "auto"; // prevent snapping back
+    }
+  });
+}
+
+// Enable drag on sectorTablePanel
+makeDraggable(document.getElementById("sectorTablePanel"));
 
 /*
 Object.entries(extraPoints).forEach(([name, [latDMS, lonDMS]]) => {
