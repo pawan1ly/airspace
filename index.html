@@ -176,10 +176,10 @@
         border: 1px solid black;
       }
 
-
+      /* sector tickbox list */
       #sectorPanel {
         position: absolute;
-        top: 33px;
+        top: 3px;
         right: 5px;
         background: rgba(0, 0, 0, 0.5);
         color: white;
@@ -397,8 +397,8 @@
     <!--Table Toggle Button -->
     <button id="toggleTableBtn" 
             style="position:absolute; top:2px; left:283px; z-index:1500;
-                   background:rgba(255,255,255,0.8); border:1px solid #888;
-                   border-radius:8px; padding:5px 8px; cursor:pointer;">
+                   background:rgba(255,255,255,0.8); border:1px solid #888;height:28px;
+                   border-radius:8px; padding:6px 10px; font-size:12px; cursor:pointer;">
       Sector Info ▸
     </button>
 
@@ -408,11 +408,11 @@
     <!--<div id="routeTooltip">Route: —</div> -->
     <--!to display "Route:-" on tooltip -->
 
-<!-- Floating Table -->
+<!-- Floating Table for sector info-->
 <div id="sectorTablePanel"
-     style="position:absolute; top:32px; left:190px; 
+     style="position:absolute; top:32px; left:174px; 
             background:rgba(0,0,0,0.6); color:white;
-            padding:10px; border-radius:8px; font-size:12px; 
+            padding:10px; border-radius:8px; font-size:10px; 
             font-family:sans-serif; z-index:1500; display:none;">
   <table id="sectorTable" border="1" cellpadding="5" cellspacing="0"
          style="border-collapse:collapse; background:#2c3e50; color:white;">
@@ -427,9 +427,18 @@
   </table>
 </div>
 
+<!-- Holding button to show holding points -->
+<button id="showHoldingsBtn" 
+        style="position:absolute; top:2px; left:377px; z-index:1500;
+               width:95px; padding:6px 10px; font-size:12px;
+               background:rgba(255,255,255,0.8);
+               border:1px solid #888; border-radius:8px; cursor:pointer;">
+  Holdings ▸
+</button>
+
     <div id="zoomSliderPanel" style="position:absolute; bottom:15px; right:15px; 
-                background:rgba(0,0,0,0.1); padding:8px; border-radius:10px; 
-                z-index:1500; color:white; font-size:12px;font-family:sans-serif;">
+                background:rgba(0,0,0,0.1); padding:8px; border-radius:8px; 
+                z-index:1500; color:white; font-size:8px;font-family:sans-serif;">
       <label for="zoomSlider">Zoom:</label>
       <input type="range" id="zoomSlider" min="5" max="12" step="0.2" value="7">
       <span id="zoomValue">7.0</span>
@@ -437,23 +446,33 @@
 
 <script>
 
-  // Array (library) to store rows
+  // Array (sector info library) to store rows
   const sectorData = [
-    { sector: "SOUTH", limit: "SFC-F600", freq: "128.250"},
-    { sector: "LIMA", limit: "SFC-F600", freq: "118.975"},
-    { sector: "BRAVO", limit: "SFC-F600", freq: "125.925"},
-    { sector: "GOLF", limit: "SFC-F245", freq: "120.525"},
-    { sector: "ALPHA", limit: "SFC-F255", freq: "129.500"},
-    { sector: "NORTH", limit: "SFC-F600", freq: "132.150"},
-    { sector: "MIKE", limit: "SFC-F600", freq: "132.550"},
-    { sector: "WEST", limit: "SFC-F245", freq: "119.300"},
-    { sector: "CENTRAL", limit: "SFC-F600", freq: "124.375"},
-    { sector: "DELTA", limit: "SFC-F245", freq: "120.900"},
-    { sector: "HOTEL", limit: "SFC-F255", freq: "128.125"},
-    { sector: "EAST", limit: "SFC-F255", freq: "125.375"},
-    { sector: "YANKEE", limit: "A095-F185", freq: "118.925"},
-    { sector: "ROMEO", limit: "SFC-F245", freq: "124.850"}
+    { sector: "SOUTH", limit: "SFC - F600", freq: "128.250"},
+    { sector: "LIMA", limit: "SFC - F600", freq: "118.975"},
+    { sector: "BRAVO", limit: "SFC - F600", freq: "125.925"},
+    { sector: "NORTH", limit: "SFC - F600", freq: "132.150"},
+    { sector: "MIKE", limit: "SFC - F600", freq: "132.550"},
+    { sector: "CENTRAL", limit: "SFC - F600", freq: "124.375"},
+    { sector: "EAST", limit: "SFC - F255", freq: "125.375"},
+    { sector: "HOTEL", limit: "SFC - F255", freq: "128.125"},
+    { sector: "ALPHA", limit: "SFC - F255", freq: "129.500"},
+    { sector: "GOLF", limit: "SFC - F245", freq: "120.525"},
+    { sector: "WEST", limit: "SFC - F245", freq: "119.300"},
+    { sector: "DELTA", limit: "SFC - F245", freq: "120.900"},
+    { sector: "ROMEO", limit: "SFC - F245", freq: "124.850"},
+    { sector: "YANKEE", limit: "A095 - F185", freq: "118.925"}
+
   ];
+
+const holdingLibrary = [
+  { point: "ITLAP", heading: 204, leg: 7, turn: "left" }, // standard
+  { point: "VUTEB", heading: 107, leg: 7, turn: "right" },    // non-standard
+  { point: "IMPED", heading: 298, leg: 7, turn: "right" },    // non-standard
+  { point: "ALNEV", heading: 117, leg: 7, turn: "right" },    // non-standard
+  { point: "ROVOS", heading: 280, leg: 7, turn: "right" }    // non-standard
+];
+
 
   // Function to render table from sectorData
   function renderSectorTable() {
@@ -1362,11 +1381,9 @@ toggleBtn.addEventListener("click", () => {
       "PASOV-OMSJ": ["E", "Y"],
       "PATAT-OMAA,AD": ["M", "H"],
       "PATAT-OMAL": ["M", "H"],
-      "PATAT-OMDB": ["R"],
-      "PATAT-OMDW": ["R"],
+      "PATAT-OMDB,SJ,DW": ["R"],
       "PATAT-OMFJ": ["R"],
       "PATAT-OMRK": ["R"],
-      "PATAT-OMSJ": ["R"],
       "PEKEM-OMAA,AD": ["L", "A"],
       "PEKEM-OMAL": ["L", "A"],
       "PEKEM-OMDB": ["L", "A", "E", "Y"],
@@ -1656,11 +1673,9 @@ toggleBtn.addEventListener("click", () => {
         "PASOV-OMSJ": ["PASOV", "B540", "ORKOB", "T891", "NOLSU"],
         "PATAT-OMAA,AD": ["PATAT", "L519", "IVOXI", "Q311", "EMERU"],
         "PATAT-OMAL": ["PATAT", "L519", "IVOXI", "Q311", "TONKI", "DCT", "KANIP"],
-        "PATAT-OMDB": ["PATAT", "L519", "PUVAL"],
-        "PATAT-OMDW": ["PATAT", "L519", "PUVAL"],
+        "PATAT-OMDB,SJ,DW": ["PATAT", "L519", "PUVAL"],
         "PATAT-OMFJ": ["PATAT", "L519", "EGPEP", "DCT", "EMOPI", "R784", "KUSEN"],
         "PATAT-OMRK": ["PATAT", "L519", "EGPEP"],
-        "PATAT-OMSJ": ["PATAT", "L519", "PUVAL"],
         "PEKEM-OMAA,AD": ["PEKEM", "M628", "RIGIL", "G783", "VAVIM", "P899", "ROVOS"],
         "PEKEM-OMAL": ["PEKEM", "M628", "RIGIL", "G783", "VAVIM"],
         "PEKEM-OMDB": ["PEKEM", "M628", "RIGIL", "G783", "ASPED", "Q308", "KIPOK", "Q568", "IMPED"],
@@ -2064,7 +2079,142 @@ function renderTriangles() {
   });
 }
 
-// --- Make sector table draggable ---
+//-------------------------------------------------------
+let holdingLayers = [];
+let holdingsVisible = false;
+
+function drawHoldingPattern(pointName, inboundHeadingDeg, legLengthNm = 10, turn = "right", turnRadiusNm = 2) {
+  const pt = extraPoints[pointName];
+  if (!pt) {
+    console.warn("Point not found:", pointName);
+    return;
+  }
+
+  const lat = convertDMSToDecimal(pt[0]);
+  const lon = convertDMSToDecimal(pt[1]);
+  const fix = L.latLng(lat, lon);
+
+  // Conversion helpers
+  const nmToDegLat = 1 / 60;
+  const nmToDegLon = (nm, lat) => nm / (60 * Math.cos(lat * Math.PI / 180));
+
+  // Angles
+  const inboundRad = inboundHeadingDeg * Math.PI / 180;
+  const outboundRad = inboundRad + Math.PI;
+  const outboundHeadingDeg = (inboundHeadingDeg + 180) % 360;
+
+  // Turn direction factor (+1 for right/clockwise, -1 for left/counter-clockwise)
+  const dir = (turn === "right") ? 1 : -1;
+
+  // Arc builder
+  function buildArc(center, startAngle, turnDir, radiusNm, steps = 20) {
+    const arcPts = [];
+    const step = (Math.PI / steps) * turnDir;
+    for (let i = 0; i <= steps; i++) {
+      const ang = startAngle + i * step;
+      const dx = Math.sin(ang) * radiusNm;
+      const dy = Math.cos(ang) * radiusNm;
+      const la = center.lat + dy * nmToDegLat;
+      const lo = center.lng + nmToDegLon(dx, center.lat);
+      arcPts.push([la, lo]);
+    }
+    return arcPts;
+  }
+
+  // --- Build racetrack ---
+
+  // 1. First 180° turn at fix
+  const perp_offset = (turn === "right") ? 90 : -90;
+  const perpDir = inboundHeadingDeg + perp_offset;
+  const perpRad = perpDir * Math.PI / 180;
+
+  const northNm = Math.cos(perpRad) * turnRadiusNm;
+  const eastNm = Math.sin(perpRad) * turnRadiusNm;
+
+  const centerLat = lat + northNm * nmToDegLat;
+  const centerLng = lon + nmToDegLon(eastNm, lat);
+  const center = L.latLng(centerLat, centerLng);
+
+  const startAngle = perpRad + Math.PI;
+
+  const firstArc = buildArc(center, startAngle, dir, turnRadiusNm);
+
+  // Arc end = start of outbound leg
+  const arcEnd = firstArc[firstArc.length - 1];
+
+  // 2. Outbound leg (reciprocal)
+  const northNmOut = Math.cos(outboundRad) * legLengthNm;
+  const eastNmOut = Math.sin(outboundRad) * legLengthNm;
+
+  const outboundEndLat = arcEnd[0] + northNmOut * nmToDegLat;
+  const outboundEndLng = arcEnd[1] + nmToDegLon(eastNmOut, arcEnd[0]);
+  const outboundEnd = [outboundEndLat, outboundEndLng];
+
+  // 3. Second 180° turn
+  const perpDir2 = outboundHeadingDeg + perp_offset;
+  const perpRad2 = perpDir2 * Math.PI / 180;
+
+  const northNm2 = Math.cos(perpRad2) * turnRadiusNm;
+  const eastNm2 = Math.sin(perpRad2) * turnRadiusNm;
+
+  const center2Lat = outboundEnd[0] + northNm2 * nmToDegLat;
+  const center2Lng = outboundEnd[1] + nmToDegLon(eastNm2, outboundEnd[0]);
+  const center2 = L.latLng(center2Lat, center2Lng);
+
+  const startAngle2 = perpRad2 + Math.PI;
+
+  const secondArc = buildArc(center2, startAngle2, dir, turnRadiusNm);
+
+  // 4. Inbound leg → back to fix
+  // Build patternPts
+  const patternPts = [...firstArc, outboundEnd, ...secondArc.slice(1), [fix.lat, fix.lng]];
+
+  // --- Draw on map ---
+  const holdLine = L.polyline(patternPts, {
+    color: "red",
+    weight: 2,
+    dashArray: "6 4"
+  }).addTo(map);
+  holdingLayers.push(holdLine);
+
+  // --- Fix marker
+  const fixMarker = L.circleMarker(fix, {
+    radius: 5, color: "yellow", fillColor: "black", fillOpacity: 1
+  })//.bindTooltip(`${pointName} Hold<br>Inbound ${inboundHeadingDeg}° (${turn})`,
+                 //{ permanent: true, direction: "top" })
+    .addTo(map);
+  holdingLayers.push(fixMarker);
+}
+
+
+function drawAllHoldings() {
+  holdingLibrary.forEach(h => drawHoldingPattern(h.point, h.heading, h.leg, h.turn));
+}
+
+function clearAllHoldings() {
+  holdingLayers.forEach(l => map.removeLayer(l));
+  holdingLayers = [];
+}
+
+//toggle button for holding ----------------------
+
+document.getElementById("showHoldingsBtn").addEventListener("click", function() {
+  if (holdingsVisible) {
+    clearAllHoldings();
+    this.textContent = "Holdings ▸";
+  } else {
+    drawAllHoldings();
+    this.textContent = "Holdings ▼";
+  }
+  holdingsVisible = !holdingsVisible;
+});
+
+
+
+
+
+
+// --- Make sector table -------------------------------------
 function makeDraggable(el) {
   let offsetX, offsetY, isDown = false;
 
