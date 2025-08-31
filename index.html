@@ -85,6 +85,7 @@
   display: none !important;
 }
 
+
       #resetViewBtn {
         position: absolute;
         top: 2px;
@@ -414,7 +415,7 @@
     <!--Table Toggle Button -->
     <button id="toggleTableBtn" 
             style="position:absolute; top:2px; left:283px; z-index:1500;
-                   background:rgba(255,255,255,0.8); border:1px solid #888;height:28px;
+                   background:rgba(255,255,255,0.8); border:1px solid #888; height:28px; width:96px;
                    border-radius:8px; padding:6px 10px; font-size:12px; cursor:pointer;">
       Sector Info ▸
     </button>
@@ -445,10 +446,9 @@
 
 <!-- Holding button to show holding points -->
 <button id="showHoldingsBtn" 
-        style="position:absolute; top:2px; left:377px; z-index:1500;
-               width:95px; padding:6px 10px; font-size:12px;
-               background:rgba(255,255,255,0.8);
-               border:1px solid #888; border-radius:8px; cursor:pointer;">
+        style="position:absolute; top:2px; left:380px; z-index:1500;
+                   background:rgba(255,255,255,0.8); border:1px solid #888; height:28px; width:96px;
+                   border-radius:8px; padding:6px 10px; font-size:12px; cursor:pointer;">
   Holdings ▸
 </button>
 
@@ -483,9 +483,9 @@
 
 const holdingLibrary = [
   { point: "ITLAP", heading: 204, leg: 7, turn: "Left", outboundHeading: 024, limit: "A100 - F180"},
-  { point: "VUTEB", heading: 107, leg: 7, turn: "Right", outboundHeading: 287, limit: "A100 - F245"},
-  { point: "IMPED", heading: 298, leg: 7, turn: "Right", outboundHeading: 118, limit: "A100 - F245"}, 
-  { point: "ALNEV", heading: 117, leg: 7, turn: "Right", outboundHeading: 297, limit: "A100 - F245"},
+  { point: "VUTEB", heading: 107, leg: 8, turn: "Right", outboundHeading: 287, limit: "A100 - F245"},
+  { point: "IMPED", heading: 298, leg: 8, turn: "Right", outboundHeading: 118, limit: "A100 - F245"}, 
+  { point: "ALNEV", heading: 117, leg: 8, turn: "Right", outboundHeading: 297, limit: "A100 - F245"},
   { point: "ROVOS", heading: 280, leg: 7, turn: "Right", outboundHeading: 100, limit: "A100 - F150"} 
 ];
 
@@ -2095,11 +2095,14 @@ function renderTriangles() {
   });
 }
 
-//-------------------------------------------------------
+//---------------------------
 let holdingLayers = [];
 let holdingMarkers = [];
 let holdingsVisible = false;
 
+// -------------------------------------------------
+// Draw holding pattern
+// -------------------------------------------------
 function drawHoldingPattern(pointName, inboundHeadingDeg, legLengthNm = 10, turn = "right", turnRadiusNm = 2, limit = "") {
   const pt = extraPoints[pointName];
   if (!pt) {
@@ -2115,13 +2118,13 @@ function drawHoldingPattern(pointName, inboundHeadingDeg, legLengthNm = 10, turn
   const nmToDegLat = 1 / 60;
   const nmToDegLon = (nm, lat) => nm / (60 * Math.cos(lat * Math.PI / 180));
 
-  // Angles
+  // Headings
   const inboundRad = inboundHeadingDeg * Math.PI / 180;
-  const outboundRad = inboundRad + Math.PI;
   const outboundHeadingDeg = (inboundHeadingDeg + 180) % 360;
+  const outboundRad = outboundHeadingDeg * Math.PI / 180;
 
   // Turn direction factor (+1 for right/clockwise, -1 for left/counter-clockwise)
-  const dir = (turn === "right") ? 1 : -1;
+  const dir = (turn.toLowerCase() === "right") ? 1 : -1;
 
   // Arc builder
   function buildArc(center, startAngle, turnDir, radiusNm, steps = 20) {
@@ -2141,7 +2144,7 @@ function drawHoldingPattern(pointName, inboundHeadingDeg, legLengthNm = 10, turn
   // --- Build racetrack ---
 
   // 1. First 180° turn at fix
-  const perp_offset = (turn === "right") ? 90 : -90;
+  const perp_offset = (turn.toLowerCase() === "right") ? 90 : -90;
   const perpDir = inboundHeadingDeg + perp_offset;
   const perpRad = perpDir * Math.PI / 180;
 
@@ -2153,7 +2156,6 @@ function drawHoldingPattern(pointName, inboundHeadingDeg, legLengthNm = 10, turn
   const center = L.latLng(centerLat, centerLng);
 
   const startAngle = perpRad + Math.PI;
-
   const firstArc = buildArc(center, startAngle, dir, turnRadiusNm);
 
   // Arc end = start of outbound leg
@@ -2179,14 +2181,12 @@ function drawHoldingPattern(pointName, inboundHeadingDeg, legLengthNm = 10, turn
   const center2 = L.latLng(center2Lat, center2Lng);
 
   const startAngle2 = perpRad2 + Math.PI;
-
   const secondArc = buildArc(center2, startAngle2, dir, turnRadiusNm);
 
   // 4. Inbound leg → back to fix
-  // Build patternPts
   const patternPts = [...firstArc, outboundEnd, ...secondArc.slice(1), [fix.lat, fix.lng]];
 
-  // --- Draw on map ---
+  // --- Draw holding pattern line ---
   const holdLine = L.polyline(patternPts, {
     color: "red",
     weight: 2,
@@ -2194,9 +2194,9 @@ function drawHoldingPattern(pointName, inboundHeadingDeg, legLengthNm = 10, turn
   }).addTo(map);
   holdingLayers.push(holdLine);
 
-  // --- Fix marker
+  // --- Fix marker with tooltip ---
   const fixMarker = L.circleMarker(fix, {
-    radius: 4, color: "yellow",  weight: 2, fillColor: "black", fillOpacity: 1
+    radius: 4, color: "yellow", weight: 2, fillColor: "black", fillOpacity: 1
   }).bindTooltip(
     `<b>${pointName}</b> Hold<br>Outbound: ${outboundHeadingDeg}° (${turn})<br>
      Limit: ${limit || "N/A"}`,
@@ -2204,14 +2204,60 @@ function drawHoldingPattern(pointName, inboundHeadingDeg, legLengthNm = 10, turn
       permanent: true,
       direction: "top",
       offset: [-40, -40],
-      className: "holding-tooltip"   // <-- custom CSS class
+      className: "holding-tooltip"
     }
   ).addTo(map);
-    holdingLayers.push(fixMarker);
-    holdingMarkers.push(fixMarker);
-  }
+  holdingLayers.push(fixMarker);
+  holdingMarkers.push(fixMarker);
+
+  // --- Arrow on outbound leg ---
+  const midOutboundLat = (arcEnd[0] + outboundEnd[0]) / 2;
+  const midOutboundLng = (arcEnd[1] + outboundEnd[1]) / 2;
+  const midOutboundPoint = L.latLng(midOutboundLat, midOutboundLng);
+
+  const arrowRotation = outboundHeadingDeg; // arrow pointing in outbound direction
+
+  const arrowIcon = L.divIcon({
+    className: "",
+    iconSize: [16, 16],
+    iconAnchor: [8, 8],
+    html: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                 width="16" height="16"
+                 style="transform: rotate(${arrowRotation}deg); fill: yellow;">
+             <path d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z"/>
+           </svg>`
+  });
+
+  // --- Arrow on inbound leg ---
+  const arc2End = secondArc[secondArc.length - 1]; // end of 2nd arc
+  const inboundMidLat = (arc2End[0] + fix.lat) / 2;
+  const inboundMidLng = (arc2End[1] + fix.lng) / 2;
+  const inboundMidPoint = L.latLng(inboundMidLat, inboundMidLng);
+
+  const inboundRotation = inboundHeadingDeg; // arrow pointing in inbound direction
+
+  const inboundArrowIcon = L.divIcon({
+    className: "",
+    iconSize: [16, 16],
+    iconAnchor: [8, 8],
+    html: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                 width="16" height="16"
+                 style="transform: rotate(${inboundRotation}deg); fill: yellow;">
+             <path d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z"/>
+           </svg>`
+  });
+
+  const inboundArrowMarker = L.marker(inboundMidPoint, { icon: inboundArrowIcon }).addTo(map);
+  holdingLayers.push(inboundArrowMarker);
 
 
+  const arrowMarker = L.marker(midOutboundPoint, { icon: arrowIcon }).addTo(map);
+  holdingLayers.push(arrowMarker);
+}
+
+// -------------------------------------------------
+// Draw/Clear all holdings
+// -------------------------------------------------
 function drawAllHoldings() {
   holdingLibrary.forEach(h => drawHoldingPattern(h.point, h.heading, h.leg, h.turn, 2, h.limit));
 }
@@ -2222,8 +2268,9 @@ function clearAllHoldings() {
   holdingMarkers = [];
 }
 
-//toggle button for holding ----------------------
-
+// -------------------------------------------------
+// Toggle button
+// -------------------------------------------------
 document.getElementById("showHoldingsBtn").addEventListener("click", function() {
   if (holdingsVisible) {
     clearAllHoldings();
@@ -2285,6 +2332,8 @@ Object.entries(extraPoints).forEach(([name, [latDMS, lonDMS]]) => {
 });
 */
 
+let coordLabelColor = "white"; 
+let coordsVisible = true;
 
 Object.entries(extraPoints).forEach(([name, [latDMS, lonDMS]]) => {
   const lat = convertDMSToDecimal(latDMS);
