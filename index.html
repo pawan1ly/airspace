@@ -2198,7 +2198,7 @@ function drawHoldingPattern(pointName, inboundHeadingDeg, legLengthNm = 10, turn
   const fixMarker = L.circleMarker(fix, {
     radius: 4, color: "yellow", weight: 2, fillColor: "black", fillOpacity: 1
   }).bindTooltip(
-    `<b>${pointName}</b> Hold<br>Outbound: ${outboundHeadingDeg}° (${turn})<br>
+    `<b>${pointName}</b> - hold<br>Outbound: ${outboundHeadingDeg}° (${turn})<br>
      Limit: ${limit || "N/A"}`,
     { 
       permanent: true,
@@ -2849,5 +2849,6 @@ document.getElementById("toggleWaypointsBtn").addEventListener("click", function
     </script>
   </body>
 </html>
+
 
 
