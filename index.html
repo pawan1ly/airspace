@@ -460,86 +460,38 @@
       <span id="zoomValue">7.0</span>
     </div>
 
-<script>
 
-  // Array (sector info library) to store rows
-  const sectorData = [
-    { sector: "SOUTH", limit: "GND - F600", freq: "128.250"},
-    { sector: "LIMA", limit: "GND - F600", freq: "125.925"},
-    { sector: "BRAVO", limit: "GND - F600", freq: "119.325"},
-    { sector: "NORTH", limit: "GND - F600", freq: "132.150"},
-    { sector: "MIKE", limit: "GND - F600", freq: "132.550"},
-    { sector: "CENTRAL", limit: "GND - F600", freq: "124.375"},
-    { sector: "DELTA", limit: "GND - F255", freq: "120.900"},
-    { sector: "HOTEL", limit: "GND - F255", freq: "128.125"},
-    { sector: "ALPHA", limit: "GND - F255", freq: "129.500"},
-    { sector: "EAST", limit: "GND - F255", freq: "125.375"},
-    { sector: "ROMEO", limit: "GND - F255", freq: "124.850"},
-    { sector: "GOLF", limit: "GND - F245", freq: "120.525"},
-    { sector: "WEST", limit: "GND - F245", freq: "119.300"},
-    { sector: "YANKEE", limit: "A095 - F195", freq: "118.925"}
-
-  ];
-
-const holdingLibrary = [
-  { point: "ITLAP", heading: 204, leg: 7, turn: "Left", outboundHeading: 024, limit: "A100 - F180"},
-  { point: "VUTEB", heading: 107, leg: 8, turn: "Right", outboundHeading: 287, limit: "A100 - F250"},
-  { point: "IMPED", heading: 298, leg: 8, turn: "Right", outboundHeading: 118, limit: "A100 - F250"}, 
-  { point: "ALNEV", heading: 117, leg: 8, turn: "Right", outboundHeading: 297, limit: "A100 - F220"},
-  { point: "ROVOS", heading: 280, leg: 7, turn: "Right", outboundHeading: 100, limit: "A100 - F160"} 
-];
+<!-- Add Details checkbox under Areas panel -->
+<div id="areasPanel" style="position:absolute; top:2px; left:478px; z-index:1000;">
+  <button onclick="toggleAreasPanel()"
+          style="background:rgba(255,255,255,0.8); border:none; padding:6px 12px; 
+                 height:28px; width:96px; border-radius:8px; cursor:pointer;">
+    Areas ▸
+  </button>
+  <div id="areasCheckboxes" style="display:none; background:rgba(255,255,255,0.8); 
+                                   padding:8px; margin-top:1px;border-radius:6px;
+                                   box-shadow:0 0 6px rgba(0,0,0,0.3); font-size:11px; font-family:sans-serif;">
+    <label><input type="checkbox" id="toggleProhibitated"> Prohibitated</label><br>
+    <label><input type="checkbox" id="toggleRestricted"> Restricted</label><br>
+    <label><input type="checkbox" id="toggleDanger"> Danger</label><br>
+    <label><input type="checkbox" id="toggleDetails"> Info</label>
+  </div>
+</div>
 
 
-  // Function to render table from sectorData
-  function renderSectorTable() {
-    const tbody = document.querySelector("#sectorTable tbody");
-    tbody.innerHTML = ""; // clear old rows
-
-    sectorData.forEach(row => {
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td>${row.sector}</td>
-        <td>${row.limit}</td>
-        <td>${row.freq}</td>
-      `;
-      tbody.appendChild(tr);
-    });
-  }
-
-  // Call once on load
-  renderSectorTable();
-
-// --- Table toggle logic ---
-const toggleBtn = document.getElementById("toggleTableBtn");
-const tablePanel = document.getElementById("sectorTablePanel");
-
-toggleBtn.addEventListener("click", () => {
-  if (tablePanel.style.display === "none") {
-    tablePanel.style.display = "block";
-    toggleBtn.textContent = "Sector Info ▼";
-  } else {
-    tablePanel.style.display = "none";
-    toggleBtn.textContent = "Sector Info ▸";
-  }
-});
-
-
-</script>
+<!-- Top-center Areas Details Tooltip Panel -->
+<div id="areaDetailsPanel" style="position:absolute; top:30px; left:50%; 
+    transform:translateX(-50%); background:rgba(70, 90, 110, 1); color:#E4FAAC;
+    padding:8px 12px; border-radius:8px; border: 1px solid grey; font-size:13px; font-family: Arial, sans-serif;
+    display:none; z-index:2000; text-align:left; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4); line-height: 1.5;">
+  <strong id="areaName">Area</strong><br>
+  <span id="areaLimit"></span><br>
+  <span id="areaType"></span>
+</div>
 
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-    <script>
-      function toggleSectorPanel() {
-        const panel = document.getElementById("sectorOptions");
-        const header = document.getElementById("sectorHeader");
 
-        if (panel.style.display === "none") {
-          panel.style.display = "block";
-          header.innerText = "Sectors ▼";
-        } else {
-          panel.style.display = "none";
-          header.innerText = "Sectors ▸";
-        }
-      }
+    <script>
 
       function convertDMSToDecimal(dmsStr) {
         const match = dmsStr.match(
@@ -1790,6 +1742,207 @@ toggleBtn.addEventListener("click", () => {
         "TOSNA-RETAS-FRA": ["TOSNA", "DCT", "NAPMA", "N685", "RETAS"],
     };
 
+  // Array (sector info library) to store rows ------------------
+  const sectorData = [
+    { sector: "SOUTH", limit: "GND - F600", freq: "128.250"},
+    { sector: "LIMA", limit: "GND - F600", freq: "125.925"},
+    { sector: "BRAVO", limit: "GND - F600", freq: "119.325"},
+    { sector: "NORTH", limit: "GND - F600", freq: "132.150"},
+    { sector: "MIKE", limit: "GND - F600", freq: "132.550"},
+    { sector: "CENTRAL", limit: "GND - F600", freq: "124.375"},
+    { sector: "DELTA", limit: "GND - F255", freq: "120.900"},
+    { sector: "HOTEL", limit: "GND - F255", freq: "128.125"},
+    { sector: "ALPHA", limit: "GND - F255", freq: "129.500"},
+    { sector: "EAST", limit: "GND - F255", freq: "125.375"},
+    { sector: "ROMEO", limit: "GND - F255", freq: "124.850"},
+    { sector: "GOLF", limit: "GND - F245", freq: "120.525"},
+    { sector: "WEST", limit: "GND - F245", freq: "119.300"},
+    { sector: "YANKEE", limit: "A095 - F195", freq: "118.925"}
+
+  ];
+
+//hold info library --------------------------------
+const holdingLibrary = [
+  { point: "ITLAP", heading: 204, leg: 7, turn: "Left", outboundHeading: 024, limit: "A100 - F180"},
+  { point: "VUTEB", heading: 107, leg: 8, turn: "Right", outboundHeading: 287, limit: "A100 - F250"},
+  { point: "IMPED", heading: 298, leg: 8, turn: "Right", outboundHeading: 118, limit: "A100 - F250"}, 
+  { point: "ALNEV", heading: 117, leg: 8, turn: "Right", outboundHeading: 297, limit: "A100 - F220"},
+  { point: "ROVOS", heading: 280, leg: 7, turn: "Right", outboundHeading: 100, limit: "A100 - F160"} 
+];
+
+// --- Prohibited Category  Library ------------------------
+const prohibitatedAreas = [
+  {shapeName: "OMP 42 Khor Fakkan", shapeType: "circle", coords: ["252240N", "0562044E"], radiusNm: 1,
+    limit: "2,000FT AGL - GND", 
+    type: "Permanent"
+  },
+  {shapeName: "OMP 49 Bahri", shapeType: "circle", coords: ["242840N", "0542515E"], radiusNm: 1,
+    limit: "6,500FT AMSL - GND", 
+    type: "Permanent"
+  },
+  {shapeName: "OMP 108 Tawilah", shapeType: "circle", coords: ["244041N", "0544152E"], radiusNm: 3,
+    limit: "FL 220 - GND", 
+    type: "Permanent"
+  },
+  {shapeName: "OMP 101 Al Maha", 
+    shapeType: "polygon",
+    coords: [["245042N", "0554141E"],["244847N", "0554143E"],["244736N", "0553918E"],
+      ["244920N", "0553858E"],["245042N", "0554141E"]],
+    limit: "2,000FT AMSL – GND", type: "Permanent"
+  },
+  {shapeName: "OMP 110 Jebel Jais Zip line", 
+    shapeType: "polygon",
+    coords: [["255657N", "0560819E"],["255633N", "0560923E"],["255538N", "0560732E"],
+      ["255551N", "0560721E"],["255657N", "0560819E"]],
+    limit: "6,500FT AMSL - GND", type: "Permanent"
+  },
+  /*{shapeName: "Rectangle A3", shapeType: "rectangle",
+    corner1: ["252400N","0562000E"],
+    corner2: ["252500N","0562100E"],
+    limit: "Surface – 8,000 FT",
+    type: "Danger"
+  }*/
+];
+
+// --- Restricted Category Library -----------------------
+const restrictedAreas = [
+  {
+    shapeName: "OMR 71 Burj Al Arab",
+    shapeType: "circle",
+    coords: ["250849N","0551112E"],
+    radiusNm: 1.5,
+    limit: "2,000FT AMSL - GND",
+    type: "Temporary"
+  },
+  {
+    shapeName: "OMR 90 Buraimi South",
+    shapeType: "polygon",
+    coords: [
+        ["234730N", "0552312E"],
+        ["234428N", "0553023E"],
+        ["232332N", "0552406E"],	
+        ["230723N", "0551420E"],
+        ["234730N", "0552312E"]
+    ],
+    limit: "FL185 - 2,000FT AGL",
+    type: "Permanent"
+  },
+  {
+    shapeName: "OMR 51 Minhad Training Area",
+    shapeType: "polygon",
+    coords: [
+        ["245630.00N", "0551155.00E"],
+        ["244755.14N", "0554814.67E"],
+        ["244303.89N", "0554813.77E"],	
+        ["244044.20N", "0554813.34E"],
+        ["243500.00N", "0554413.00E"],
+        ["242923.17N", "0554558.61E"],
+        ["242437.88N", "0554124.58E"],
+        ["242943.38N", "0551411.55E"],
+        ["243429.76N", "0551331.68E"],
+        ["243335.74N", "0550548.57E"],
+        ["243447.39N", "0550401.23E"],
+        ["243824.15N", "0550147.31E"],
+        ["244009.93N", "0550137.10E"],
+        ["245630.00N", "0551155.00E"]
+
+    ],
+    limit: "FL185 - 2,000FT AGL",
+    type: "Permanent"
+  },
+  {
+    shapeName: "OMR 51 Arch",
+    shapeType: "circle",
+    coords: ["243850.46N","0550715.30E"],
+    radiusNm: 5,
+    limit: "2,000FT AMSL - GND",
+    type: "Temporary"
+  }
+];
+
+// -Danger Category Library ---
+const dangerAreas = [
+  /*{
+    shapeName: "Circle C1",
+    shapeType: "circle",
+    coords: ["251200N","0554000E"],
+    radiusNm: 2,
+    limit: "FL60 – FL120",
+    type: "Temporary"
+  },*/
+  {
+    shapeName: "OMD 22 Sea Range Charlie",
+    shapeType: "polygon",
+    coords: [
+       ["250330N", "0541625E"],
+       ["251200N", "0542210E"],
+       ["250713N", "0543130E"],
+       ["245830N", "0542545E"],
+       ["250330N", "0541625E"]
+    ],
+    limit: "FL300 - GND	",
+    type: "NOTAM"
+  }
+];
+
+
+  // Function to render table from sectorData
+  function renderSectorTable() {
+    const tbody = document.querySelector("#sectorTable tbody");
+    tbody.innerHTML = ""; // clear old rows
+
+    sectorData.forEach(row => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${row.sector}</td>
+        <td>${row.limit}</td>
+        <td>${row.freq}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  // Call once on load
+  renderSectorTable();
+
+// --- Table toggle logic ---
+const toggleBtn = document.getElementById("toggleTableBtn");
+const tablePanel = document.getElementById("sectorTablePanel");
+
+toggleBtn.addEventListener("click", () => {
+  if (tablePanel.style.display === "none") {
+    tablePanel.style.display = "block";
+    toggleBtn.textContent = "Sector Info ▼";
+  } else {
+    tablePanel.style.display = "none";
+    toggleBtn.textContent = "Sector Info ▸";
+  }
+});
+
+
+      function toggleSectorPanel() {
+        const panel = document.getElementById("sectorOptions");
+        const header = document.getElementById("sectorHeader");
+
+        if (panel.style.display === "none") {
+          panel.style.display = "block";
+          header.innerText = "Sectors ▼";
+        } else {
+          panel.style.display = "none";
+          header.innerText = "Sectors ▸";
+        }
+      }
+
+
+
+
+
+
+
+
+
+
+//----------------------------------------------------------------------------
 /*
     const baseMapLayer = L.tileLayer(
       'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
@@ -2194,7 +2347,7 @@ function drawHoldingPattern(pointName, inboundHeadingDeg, legLengthNm = 10, turn
   }).addTo(map);
   holdingLayers.push(holdLine);
 
-  // --- Fix marker with tooltip ---
+  // --- hold area marker with tooltip ---
   const fixMarker = L.circleMarker(fix, {
     radius: 4, color: "yellow", weight: 2, fillColor: "black", fillOpacity: 1
   }).bindTooltip(
@@ -2254,8 +2407,6 @@ function drawHoldingPattern(pointName, inboundHeadingDeg, legLengthNm = 10, turn
   const arrowMarker = L.marker(midOutboundPoint, { icon: arrowIcon }).addTo(map);
   holdingLayers.push(arrowMarker);
 }
-
-// -------------------------------------------------
 // Draw/Clear all holdings
 // -------------------------------------------------
 function drawAllHoldings() {
@@ -2267,8 +2418,6 @@ function clearAllHoldings() {
   holdingLayers = [];
   holdingMarkers = [];
 }
-
-// -------------------------------------------------
 // Toggle button
 // -------------------------------------------------
 document.getElementById("showHoldingsBtn").addEventListener("click", function() {
@@ -2283,6 +2432,148 @@ document.getElementById("showHoldingsBtn").addEventListener("click", function() 
 });
 
 
+//danger areas selection pannel------------------------------
+
+  function toggleAreasPanel() {
+    const panel = document.getElementById("areasCheckboxes");
+    panel.style.display = (panel.style.display === "none") ? "block" : "none";
+  }
+
+
+  function nmToMeters(nm) {
+   return nm * 1852;
+  }
+
+  // Create layer groups
+  const prohibitated = L.layerGroup();
+  const restricted = L.layerGroup();
+  const danger = L.layerGroup();
+
+  // ✅ Example using your convertDMSToDecimal function
+
+  function dmsToLatLng(latDMS, lonDMS) {
+    return [
+      convertDMSToDecimal(latDMS),
+      convertDMSToDecimal(lonDMS)
+    ];
+  }
+
+
+
+// Function to update details panel
+function showAreaDetails(area) {
+  if (!document.getElementById("toggleDetails").checked) return;
+
+  document.getElementById("areaName").textContent = area.shapeName;
+  document.getElementById("areaLimit").textContent = "Limit: " + (area.limit || "N/A");
+  document.getElementById("areaType").textContent = "Type: " + (area.type || "N/A");
+  document.getElementById("areaDetailsPanel").style.display = "block";
+}
+
+// Hide details if checkbox off
+document.getElementById("toggleDetails").addEventListener("change", e => {
+  document.getElementById("areaDetailsPanel").style.display = e.target.checked ? "block" : "none";
+});
+
+
+function renderAreas(areaList, layerGroup, color) {
+  areaList.forEach(area => {
+    let shape;
+    let center;
+
+    switch (area.shapeType) {
+      case "circle":
+        if (!Array.isArray(area.coords) || area.coords.length !== 2) {
+          console.error(`Invalid coords for circle area "${area.shapeName}": must be an array [latDMS, lonDMS]`, area);
+          return;
+        }
+        center = dmsToLatLng(...area.coords);
+        if (typeof area.radiusNm !== 'number') {
+          console.error(`Invalid radiusNm for circle area "${area.shapeName}": must be a number`, area);
+          return;
+        }
+        shape = L.circle(center, {
+          radius: nmToMeters(area.radiusNm),
+          color,
+          weight: 1  // Reduced thickness
+        }).addTo(layerGroup);
+        break;
+
+      case "polygon":
+        if (!Array.isArray(area.coords) || area.coords.length < 3 || !area.coords.every(coord => Array.isArray(coord) && coord.length === 2)) {
+          console.error(`Invalid coords for polygon area "${area.shapeName}": must be an array of at least 3 [latDMS, lonDMS] arrays`, area);
+          return;
+        }
+        const latlngs = area.coords.map(([lat, lon]) => dmsToLatLng(lat, lon));
+        shape = L.polygon(latlngs, { color, weight: 1 }).addTo(layerGroup);
+        center = shape.getBounds().getCenter();
+        break;
+
+      case "rectangle":
+        if (!Array.isArray(area.corner1) || area.corner1.length !== 2 || !Array.isArray(area.corner2) || area.corner2.length !== 2) {
+          console.error(`Invalid corner1 or corner2 for rectangle area "${area.shapeName}": each must be an array [latDMS, lonDMS]`, area);
+          return;
+        }
+        const corner1 = dmsToLatLng(...area.corner1);
+        const corner2 = dmsToLatLng(...area.corner2);
+        shape = L.rectangle([corner1, corner2], { color,weight: 1}).addTo(layerGroup);
+        center = shape.getBounds().getCenter();
+        break;
+
+      default:
+        console.error(`Unknown shapeType "${area.shapeType}" for area "${area.shapeName}"`, area);
+        return;
+    }
+
+    if (center) {
+      // Label
+      L.marker(center, {
+        icon: L.divIcon({
+          className: "area-label",
+          html: `<div style="color:${color}; font-weight:bold;">${area.shapeName}</div>`,
+          iconSize: [0, 0]
+        })
+      }).addTo(layerGroup);
+
+      // Details panel on click
+      shape.on("click", () => showAreaDetails(area, color));
+    }
+  });
+}
+
+  renderAreas(prohibitatedAreas, prohibitated, "yellow");
+  renderAreas(restrictedAreas, restricted, "orange");
+  renderAreas(dangerAreas, danger, "red");
+
+function showAreaDetails(area, color) {
+  const detailsCheckbox = document.getElementById('toggleDetails');
+  if (!detailsCheckbox.checked) {
+    return;  // Do not show if "Info" checkbox is not checked
+  }
+  
+  const panel = document.getElementById('areaDetailsPanel');
+  document.getElementById('areaName').textContent = area.shapeName;
+  document.getElementById('areaLimit').textContent = area.limit;
+  document.getElementById('areaType').textContent = area.type;
+  panel.style.color = color;  // Match the drawn area color
+  panel.style.display = 'block';
+}
+
+  // Toggle logic for area checkboxes
+  document.getElementById("toggleProhibitated").addEventListener("change", e => {
+    if (e.target.checked) map.addLayer(prohibitated);
+    else map.removeLayer(prohibitated);
+  });
+
+  document.getElementById("toggleRestricted").addEventListener("change", e => {
+    if (e.target.checked) map.addLayer(restricted);
+    else map.removeLayer(restricted);
+  });
+
+  document.getElementById("toggleDanger").addEventListener("change", e => {
+    if (e.target.checked) map.addLayer(danger);
+    else map.removeLayer(danger);
+  });
 
 
 
@@ -2849,6 +3140,5 @@ document.getElementById("toggleWaypointsBtn").addEventListener("click", function
     </script>
   </body>
 </html>
-
 
 
