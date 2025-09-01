@@ -471,9 +471,9 @@
     { sector: "MIKE", limit: "GND - F600", freq: "132.550"},
     { sector: "CENTRAL", limit: "GND - F600", freq: "124.375"},
     { sector: "DELTA", limit: "GND - F255", freq: "120.900"},
+    { sector: "HOTEL", limit: "GND - F255", freq: "128.125"},
     { sector: "ALPHA", limit: "GND - F255", freq: "129.500"},
     { sector: "EAST", limit: "GND - F255", freq: "125.375"},
-    { sector: "HOTEL", limit: "GND - F255", freq: "128.125"},
     { sector: "ROMEO", limit: "GND - F255", freq: "124.850"},
     { sector: "GOLF", limit: "GND - F245", freq: "120.525"},
     { sector: "WEST", limit: "GND - F245", freq: "119.300"},
@@ -483,10 +483,10 @@
 
 const holdingLibrary = [
   { point: "ITLAP", heading: 204, leg: 7, turn: "Left", outboundHeading: 024, limit: "A100 - F180"},
-  { point: "VUTEB", heading: 107, leg: 8, turn: "Right", outboundHeading: 287, limit: "A100 - F245"},
-  { point: "IMPED", heading: 298, leg: 8, turn: "Right", outboundHeading: 118, limit: "A100 - F245"}, 
-  { point: "ALNEV", heading: 117, leg: 8, turn: "Right", outboundHeading: 297, limit: "A100 - F245"},
-  { point: "ROVOS", heading: 280, leg: 7, turn: "Right", outboundHeading: 100, limit: "A100 - F150"} 
+  { point: "VUTEB", heading: 107, leg: 8, turn: "Right", outboundHeading: 287, limit: "A100 - F250"},
+  { point: "IMPED", heading: 298, leg: 8, turn: "Right", outboundHeading: 118, limit: "A100 - F250"}, 
+  { point: "ALNEV", heading: 117, leg: 8, turn: "Right", outboundHeading: 297, limit: "A100 - F220"},
+  { point: "ROVOS", heading: 280, leg: 7, turn: "Right", outboundHeading: 100, limit: "A100 - F160"} 
 ];
 
 
@@ -2849,4 +2849,5 @@ document.getElementById("toggleWaypointsBtn").addEventListener("click", function
     </script>
   </body>
 </html>
+
 
