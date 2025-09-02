@@ -2061,7 +2061,7 @@ let extraLabelMarkers = [];
         const list = document.getElementById("routeList");
         list.innerHTML = "";
 
-        const selectedSectors = getSelectedSectors(); //You already have this
+        const selectedSectors = getSelectedSectors();
 
         const routePairs = [];
 
@@ -2543,7 +2543,7 @@ function renderAreas(areaList, layerGroup, color) {
 
   renderAreas(prohibitatedAreas, prohibitated, "yellow");
   renderAreas(restrictedAreas, restricted, "orange");
-  renderAreas(dangerAreas, danger, "red");
+  renderAreas(dangerAreas, danger, "pink");
 
 function showAreaDetails(area, color) {
   const detailsCheckbox = document.getElementById('toggleDetails');
