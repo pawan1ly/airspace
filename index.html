@@ -69,7 +69,7 @@
 
 /* Custom holding pattern tooltip */
 .leaflet-tooltip.holding-tooltip {
-  background-color: rgba(70, 90, 110, 1); 
+  background-color: rgba(40, 80, 110, 1);
   color: yellow;              
   border: 1px solid grey; 
   border-radius: 10px;      
@@ -474,6 +474,7 @@
     <label><input type="checkbox" id="toggleProhibitated"> Prohibitated</label><br>
     <label><input type="checkbox" id="toggleRestricted"> Restricted</label><br>
     <label><input type="checkbox" id="toggleDanger"> Danger</label><br>
+    <label><input type="checkbox" id="toggleTraining"> Training</label><br>
     <label><input type="checkbox" id="toggleDetails"> Info</label>
   </div>
 </div>
@@ -481,8 +482,8 @@
 
 <!-- Top-center Areas Details Tooltip Panel -->
 <div id="areaDetailsPanel" style="position:absolute; top:30px; left:50%; 
-    transform:translateX(-50%); background:rgba(70, 90, 110, 1); color:#E4FAAC;
-    padding:8px 12px; border-radius:8px; border: 1px solid grey; font-size:13px; font-family: Arial, sans-serif;
+    transform:translateX(-50%); background:rgba(40, 73, 82, 1);
+    padding:8px 12px; border-radius:10px; border: 1px solid grey; font-size:13px; font-family: Arial, sans-serif;
     display:none; z-index:2000; text-align:left; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4); line-height: 1.5;">
   <strong id="areaName">Area</strong><br>
   <span id="areaLimit"></span><br>
@@ -1763,7 +1764,7 @@
 
 //hold info library --------------------------------
 const holdingLibrary = [
-  { point: "ITLAP", heading: 204, leg: 7, turn: "Left", outboundHeading: 024, limit: "A100 - F180"},
+  { point: "ITLAP", heading: 204, leg: 6, turn: "Left", outboundHeading: 024, limit: "A100 - F180"},
   { point: "VUTEB", heading: 107, leg: 8, turn: "Right", outboundHeading: 287, limit: "A100 - F250"},
   { point: "IMPED", heading: 298, leg: 8, turn: "Right", outboundHeading: 118, limit: "A100 - F250"}, 
   { point: "ALNEV", heading: 117, leg: 8, turn: "Right", outboundHeading: 297, limit: "A100 - F220"},
@@ -1772,34 +1773,24 @@ const holdingLibrary = [
 
 // --- Prohibited Category  Library ------------------------
 const prohibitatedAreas = [
-  {shapeName: "OMP 42 Khor Fakkan", shapeType: "circle", coords: ["252240N", "0562044E"], radiusNm: 1,
-    limit: "2,000FT AGL - GND", 
-    type: "Permanent"
+  {
+    shapeName: "OMP_48 Argoob",
+    shapeType: "circle",
+    coords: ["243850.46N","0550715.30E"],
+    radiusNm: 5,
+    limit: "UNL - GND",
+    type: "Permanent, Military activity extremely hazardous to aircraft"
   },
-  {shapeName: "OMP 49 Bahri", shapeType: "circle", coords: ["242840N", "0542515E"], radiusNm: 1,
-    limit: "6,500FT AMSL - GND", 
-    type: "Permanent"
-  },
-  {shapeName: "OMP 108 Tawilah", shapeType: "circle", coords: ["244041N", "0544152E"], radiusNm: 3,
-    limit: "FL 220 - GND", 
-    type: "Permanent"
-  },
-  {shapeName: "OMP 101 Al Maha", 
-    shapeType: "polygon",
-    coords: [["245042N", "0554141E"],["244847N", "0554143E"],["244736N", "0553918E"],
-      ["244920N", "0553858E"],["245042N", "0554141E"]],
-    limit: "2,000FT AMSL – GND", type: "Permanent"
-  },
-  {shapeName: "OMP 110 Jebel Jais Zip line", 
-    shapeType: "polygon",
-    coords: [["255657N", "0560819E"],["255633N", "0560923E"],["255538N", "0560732E"],
-      ["255551N", "0560721E"],["255657N", "0560819E"]],
-    limit: "6,500FT AMSL - GND", type: "Permanent"
-  },
+  {shapeName: "OMP_108 Tawilah", shapeType: "circle", coords: ["244041N", "0544152E"], radiusNm: 3,
+    limit: "FL220 - GND", 
+    type: "Permanent, Controlled by Air Operations Center."
+  }
+
+//sample of rectangle shape
   /*{shapeName: "Rectangle A3", shapeType: "rectangle",
     corner1: ["252400N","0562000E"],
     corner2: ["252500N","0562100E"],
-    limit: "Surface – 8,000 FT",
+    limit: "Surface – 8,000ft",
     type: "Danger"
   }*/
 ];
@@ -1807,28 +1798,15 @@ const prohibitatedAreas = [
 // --- Restricted Category Library -----------------------
 const restrictedAreas = [
   {
-    shapeName: "OMR 71 Burj Al Arab",
+    shapeName: "OIR_38 Siri_Island",
     shapeType: "circle",
-    coords: ["250849N","0551112E"],
-    radiusNm: 1.5,
-    limit: "2,000FT AMSL - GND",
-    type: "Temporary"
-  },
-  {
-    shapeName: "OMR 90 Buraimi South",
-    shapeType: "polygon",
-    coords: [
-        ["234730N", "0552312E"],
-        ["234428N", "0553023E"],
-        ["232332N", "0552406E"],	
-        ["230723N", "0551420E"],
-        ["234730N", "0552312E"]
-    ],
-    limit: "FL185 - 2,000FT AGL",
+    coords: ["255420N","0543320E"],
+    radiusNm: 12,
+    limit: "12,000ft AMSL - GND",
     type: "Permanent"
   },
   {
-    shapeName: "OMR 51 Minhad Training Area",
+    shapeName: "OMR_51 Minhad_Trng_Area",
     shapeType: "polygon",
     coords: [
         ["245630.00N", "0551155.00E"],
@@ -1845,18 +1823,46 @@ const restrictedAreas = [
         ["243824.15N", "0550147.31E"],
         ["244009.93N", "0550137.10E"],
         ["245630.00N", "0551155.00E"]
-
     ],
-    limit: "FL185 - 2,000FT AGL",
-    type: "Permanent"
+    limit: "FL300 - FL155",
+    type: "Activity notified by UAE ACC, When active: Controlled by AL MAKTOUM RADAR, Contact 124.025 MHz before entering Military jet training"
   },
   {
-    shapeName: "OMR 51 Arch",
-    shapeType: "circle",
-    coords: ["243850.46N","0550715.30E"],
-    radiusNm: 5,
-    limit: "2,000FT AMSL - GND",
-    type: "Temporary"
+    shapeName: "OMR_53 Minhad_Trng_Area",
+    shapeType: "polygon",
+    coords: [
+        ["244134.55N", "0551221.09E"],
+        ["244030.00N", "0551430.00E"],
+        ["243453.00N", "0552421.00E"],
+        ["243500.00N", "0552700.00E"],
+        ["243500.41N", "0553519.70E"],
+        ["243500.00N", "0554413.00E"],
+        ["242324.51N", "0554750.88E"],
+        ["242534.00N", "0553628.00E"],
+        ["242804.83N", "0552301.05E"],
+        ["242943.38N", "0551411.55E"],
+        ["243429.76N", "0551331.68E"],
+        ["244134.55N", "0551221.09E"]
+    ],
+    limit: "FL155 - GND",
+    type: "Activity notified by UAE ACC, When active: Controlled by DUBAI SOUTH RADAR, Contact 120.400 MHz before entering Military jet training"
+  },
+  {
+    shapeName: "OMR_67 Ras_Al_Kheimah",
+    shapeType: "polygon",
+    coords: [
+        ["253530N", "0562150E"],
+        ["252500N", "0562150E"],
+        ["252500N", "0555958E"],	
+        ["252800N", "0554500E"],
+        ["255230N", "0560130E"],
+        ["255316N", "0560729E"],
+        ["253549N", "0561011E"],
+        ["253613N", "0561945E"],
+        ["253530N", "0562150E"]
+    ],
+    limit: "FL300 - 9,500ft AGL",
+    type: "Activity notified by UAE ACC, High level military jet training"
   }
 ];
 
@@ -1871,7 +1877,7 @@ const dangerAreas = [
     type: "Temporary"
   },*/
   {
-    shapeName: "OMD 22 Sea Range Charlie",
+    shapeName: "OMD_22 Sea_Range_Charlie",
     shapeType: "polygon",
     coords: [
        ["250330N", "0541625E"],
@@ -1881,10 +1887,53 @@ const dangerAreas = [
        ["250330N", "0541625E"]
     ],
     limit: "FL300 - GND	",
-    type: "NOTAM"
+    type: "NOTAM, Air to Air towed target gunnery and Naval gunnery practice, Controlled by UAE ACC "
+  },
+  {
+    shapeName: "OMD_24 Bargat_Al_Hagat",
+    shapeType: "polygon",
+    coords: [
+       ["243429.76N", "0551331.68E"],
+       ["242931.08N", "0551413.26E"],
+       ["242839.42N", "0550708.58E"],
+       ["243008.88N", "0550517.88E"],
+       ["243328.80N", "0550449.32E"],
+       ["243429.76N", "0551331.68E"]
+    ],
+    limit: "FL220 - GND	",
+    type: "NOTAM - Controlled by AUH APP"
   }
 ];
 
+// -Training Category Library ---
+const trainingAreas = [
+  {
+    shapeName: "TRNG_A",
+    shapeType: "polygon",
+    coords: [
+       ["253026N", "0533441E"],
+       ["252203N", "0532838E"],
+       ["250534N", "0535616E"],
+       ["251355N", "0540220E"],
+       ["253026N", "0533441E"]
+    ],
+    limit: "13,000ft AMSL - 6,000ft AMSL",
+    type: "Civil Training Flights, Activity notified by UAE ACC, When active: Controlled by UAE ACC, Contact: 120.525 Mhz"
+  },
+  {
+    shapeName: "TRNG_B",
+    shapeType: "polygon",
+    coords: [
+       ["251341N", "0532237E"],
+       ["252203N", "0532838E"],
+       ["250534N", "0535616E"],
+       ["245711N", "0535012E"],
+       ["251341N", "0532237E"]
+    ],
+    limit: "13,000ft AMSL - 6,000ft AMSL",
+    type: "Civil Training Flights, Activity notified by UAE ACC, When active: Controlled by UAE ACC, Contact: 120.525 Mhz"
+  }
+];
 
   // Function to render table from sectorData
   function renderSectorTable() {
@@ -2061,7 +2110,7 @@ let extraLabelMarkers = [];
         const list = document.getElementById("routeList");
         list.innerHTML = "";
 
-        const selectedSectors = getSelectedSectors();
+        const selectedSectors = getSelectedSectors(); //You already have this
 
         const routePairs = [];
 
@@ -2432,7 +2481,7 @@ document.getElementById("showHoldingsBtn").addEventListener("click", function() 
 });
 
 
-//danger areas selection pannel------------------------------
+//areas selection pannel------------------------------
 
   function toggleAreasPanel() {
     const panel = document.getElementById("areasCheckboxes");
@@ -2448,6 +2497,7 @@ document.getElementById("showHoldingsBtn").addEventListener("click", function() 
   const prohibitated = L.layerGroup();
   const restricted = L.layerGroup();
   const danger = L.layerGroup();
+  const training = L.layerGroup();
 
   // ✅ Example using your convertDMSToDecimal function
 
@@ -2541,9 +2591,11 @@ function renderAreas(areaList, layerGroup, color) {
   });
 }
 
-  renderAreas(prohibitatedAreas, prohibitated, "yellow");
-  renderAreas(restrictedAreas, restricted, "orange");
-  renderAreas(dangerAreas, danger, "pink");
+  renderAreas(prohibitatedAreas, prohibitated, "#FFFF66"); //yellow
+  renderAreas(restrictedAreas, restricted, "#FEB476");//orange
+  renderAreas(dangerAreas, danger, "#FFBDFF");//pink
+  renderAreas(trainingAreas, training, "#BDEEEF");
+
 
 function showAreaDetails(area, color) {
   const detailsCheckbox = document.getElementById('toggleDetails');
@@ -2575,6 +2627,10 @@ function showAreaDetails(area, color) {
     else map.removeLayer(danger);
   });
 
+  document.getElementById("toggleTraining").addEventListener("change", e => {
+    if (e.target.checked) map.addLayer(training);
+    else map.removeLayer(training);
+  });
 
 
 
