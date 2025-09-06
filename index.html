@@ -5,384 +5,468 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <style>
-      html,
-      body {
-        margin: 0;
-        padding: 0;
-        overflow: hidden;
-        height: 100%;
-        width: 100%;
-      }
-      #map {
-        height: 100vh;
-        width: 100vw;
-        background-color: #374b57; //screen backgroud
-      }
+       html,
+       body {
+         margin: 0;
+         padding: 0;
+         overflow: hidden;
+         height: 100%;
+         width: 100%;
+       }
+       #map {
+         height: 100vh;
+         width: 100vw;
+         background-color: #374b57; //screen backgroud
+       }
+       
+       /* fixes name labels styling*/
+       .coord-label {
+         background: none !important;
+         border: none !important;
+         box-shadow: none !important;
+         padding: 0 !important;
+         margin: 0 !important;
+         color: white;
+         font-size: 9px;
+         font-family: 'Roboto', calibri-light;
+         font-weight: light; /* Thinner font */
+         text-align: center;
+         opacity: 0.5;
+       }
+       .coord-label::before {
+         display: none !important;
+       }
 
-      .coord-label {
+       /* airway name labels styling*/
+       .airway-label {
+         background-color: rgba(55, 65, 75, 0.9) !important;
+         //background: transparent !important;
+         border: none !important;
+         padding: 2px !important;
+         margin: 0px !important;
+         box-shadow: none !important;
+         font-size: 12px;
+         //font-family: 'Roboto', calibri-light;
+         font-weight: bold;
+         color: yellow !important;
+         text-shadow: none !important;
+         line-height: 1;
+       }
+
+       /* Menu bar styling */
+       .map-menu-bar {
+         position: absolute;
+         top: 1px;
+         left: 3px;
+         z-index: 1001;
+         display: flex;
+         gap: 5px;
+         padding: 2px;
+         background: rgba(95, 110, 120, 0.9);
+         //border: 1px solid #888;
+         border-radius: 8px;
+        }
+
+       /* menu button styling (flat look) */
+       .map-btn {
+         padding: 6px 10px;
+         font-size: 12px;
+         color: white;
+         cursor: pointer;
+         height: 28px;
+         width: 97px;
+         min-width: 65px;
+         background: transparent; /* Remove background */
+         border-color:grey;
+         border: 1px solid #888;
+         //border: none; /* Remove border */
+         border-radius: 8px; /* Remove individual rounding */
+       }
+
+      /* danger Areas button with submenu */
+       .map-btn-panel {
+         position: relative;
+         display: inline-flex;
+         flex-direction: column;
+       }
+
+       .areas-checkboxes {
+         display: none;
+         position: absolute;
+         top: 108%;
+         left: 0;
+         width: 87px;
+         background: rgba(95, 110, 120, 0.9);
+         color: white;
+         padding: 5px;
+         margin-top: 1px;
+         border-radius: 6px;
+         box-shadow: 0 0 6px rgba(0, 0, 0, 0.3);
+         font-size: 11px;
+         font-family: sans-serif;
+         z-index: 1002;
+       }
+
+       .areas-checkboxes label {
+         display: block;
+         margin: 2px 0;
+       }
+
+       .map-btn:hover {
+         color: yellow;
+       }
+
+       /* Show checkboxes when Areas button is active */
+       #areasPanel.active .areas-checkboxes {
+         display: block;
+       }
+
+       /*route pair area styling*/
+       #routePanel {
+         position: absolute;
+         top: 34px;
+         left: 3px;
+         background: rgba(35, 49, 57, 0.6);
+         //border: 1px solid #ccc; //#999;
+         border-radius: 8px;
+         padding: 8px;
+         width: 150px;
+         max-height: 92%;
+         overflow: hidden;
+         //overflow-y: auto;
+         z-index: 1000;
+         color: white;
+         box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
+         display: flex;
+         flex-direction: column;
+       }
+
+       #routeList {
+         overflow-y: auto;
+         overflow-x: hidden;
+         padding-right: 6px;
+       }
+
+       #routeList::-webkit-scrollbar {
+         width: 4px; /* narrower scrollbar */
+       }
+
+       #routeList::-webkit-scrollbar-thumb {
+         background-color: rgba(200, 200, 200, 0.5); /* thumb color */
+         border-radius: 3px;
+       }
+
+       #routeList::-webkit-scrollbar-track {
+         background-color: transparent;
+       }
+
+       /*route pair buttons styling*/
+       #routeList button {
+         display: block;
+         width: 100%;
+         margin-bottom: 5px;
+         padding: 4px;
+         font-size: 10px;
+         border-radius: 12px;
+         border: 0.1px solid grey;
+         background: #405664;
+         color: white;
+         cursor: pointer;
+         transition: transform 0.2s ease;
+         transform-origin: center;
+         will-change: transform;
+       }
+
+       #routeList button:hover {
+         transform: scale(1.2);
+         background-color: #fbc965;
+         color: black;
+         z-index: 1;
+       }
+
+       /*format route pair button when selected*/
+       #routeList button.selected-route {
+         background-color: #fbc965;
+         color: black;
+         //font-weight: bold;
+         border: 1px solid black;
+       }
+
+       #routeFilters {
+         display: flex;
+         justify-content: space-between;
+         margin-bottom: 8px;
+         background: rgba(0, 0, 0, 0.15);
+         border-bottom: 1px solid #888;
+       }
+
+       .filter-btn {
+         flex: 1;
+         padding: 4px;
+         margin: 2px;
+         color: #486110;
+         font-size: 12px;
+         border-radius: 8px;
+         border: none;
+         cursor: pointer;
+         background: #bfbfbf;
+       }
+
+       .filter-btn.selected {
+         background-color: #fbc965; //orange;
+         color: black; //
+         font-size: 12px;
+         font-weight: bold;
+         border: 1px solid black;
+       }
+
+       /* sector tickbox list - right of the screen*/
+       #sectorPanel {
+         position: absolute;
+         top: 3px;
+         right: 5px;
+         background: rgba(35, 49, 57, 0.7);
+         color: white;
+         font-family: sans-serif;
+         font-size: 12px;
+         border-radius: 8px;
+         overflow: hidden;
+         z-index: 1000;
+         width: 75px;
+         box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+       }
+
+       #sectorHeader {
+         // background: #222;
+         padding: 8px;
+         cursor: pointer;
+         font-weight: bold;
+         text-align: center;
+       }
+
+       #sectorOptions {
+         padding: 8px;
+         //display: none; /* start collapsed */
+         max-height: 410px;
+         overflow-y: auto;
+       }
+
+       #sectorOptions label {
+         display: block;
+         margin: 4px 0;
+         font-size: 11px;
+         cursor: pointer;
+       }
+
+       #sectorOptions {
+         overflow-y: auto;
+         overflow-x: hidden;
+         padding-right: 6px;
+       }
+
+       #sectorOptions::-webkit-scrollbar {
+         width: 4px; /* narrower scrollbar */
+       }
+
+       #sectorOptions::-webkit-scrollbar-thumb {
+         background-color: rgba(200, 200, 200, 0.5); /* thumb color */
+         border-radius: 3px;
+       }
+
+       #sectorOptions::-webkit-scrollbar-track {
+         background-color: transparent;
+       }
+
+      /*sector letter in colored area styling big letter*/
+      .sector-label {
         background: none !important;
         border: none !important;
         box-shadow: none !important;
         padding: 0 !important;
         margin: 0 !important;
-        color: white;
-        font-size: 9px;
-        font-family: 'Roboto', calibri-light;
-        font-weight: light; /* Thinner font */
-        text-align: center;
-        opacity: 0.5;
+        color: rgba(255, 255, 255, 0.3) !important;
+        font-size: 48px !important;
+        font-family: monospace !important;
+        font-weight: bold !important;
+        text-align: bottom !important;
+        opacity: 1 !important;  /* Ensure container is fully visible; opacity is handled via rgba */
       }
 
-      .coord-label::before {
+      /* holding pattern tooltip styling*/
+      .leaflet-tooltip.holding-tooltip {
+        background-color: rgba(10, 60, 70, 1);
+        color: yellow;              
+        border: 1px solid grey; 
+        border-radius: 10px;      
+        padding: 6px 10px;
+        font-size: 12px;
+        font-family: Arial, sans-serif;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);;
+      }
+
+      /* Remove the little arrow ("tip") */
+      .leaflet-tooltip.holding-tooltip::before,
+      .leaflet-tooltip.holding-tooltip::after {
         display: none !important;
       }
+       /*--display selected route pair remarks at the bottom of the screen*/
+       #remarksOverlay {
+         position: absolute;
+         bottom: 133px;
+         left: 50%;
+         transform: translateX(-50%);
+         background: rgba(134, 230, 173, 1);//green
+         color: #013845;
+         padding: 3px 10px;
+         font-weight: bold;
+         font-size: 12px;
+         border-radius: 11px;
+         z-index: 1500;
+         pointer-events: none; /* so it doesn't block map clicks */
+         white-space: pre-wrap;
+         text-align: center;
+       }
 
-      .airway-label {
-        background-color: rgba(255, 255, 255, 0.9) !important;
-        //background: transparent !important;
-        border: none !important;
-        padding: 2px !important;
-        margin: 0px !important;
-        box-shadow: none !important;
-        font-size: 12px;
-        //font-family: 'Roboto', calibri-light;
-        font-weight: bold;
-        color: black !important;
-        text-shadow: none !important;
-        line-height: 1;
-      }
+       /*--display sector initials at the bottom of the screen */
+       #sectorTooltip {
+         position: absolute;
+         bottom: 95px;
+         left: 50%;
+         transform: translateX(-50%);
+         padding: 6px 12px;
+         background: #233139;
+         color: white;
+         font-size: 14px;
+         font-family: 'Roboto', san-serif;
+         //font-weight: bold;
+         border-radius: 12px;
+         z-index: 1001;
+         max-width: 90%;
+         text-align: center;
+         white-space: nowrap;
+         overflow: hidden;
+         text-overflow: ellipsis;
+       }
 
-/*displaying sector letter in colored area*/
-.sector-label {
-  background: none !important;
-  border: none !important;
-  box-shadow: none !important;
-  padding: 0 !important;
-  margin: 0 !important;
-  color: rgba(255, 255, 255, 0.3) !important;
-  font-size: 48px !important;
-  font-family: monospace !important;
-  font-weight: bold !important;
-  text-align: bottom !important;
-  opacity: 1 !important;  /* Ensure container is fully visible; opacity is handled via rgba */
-}
+       /*--display CFL-XFL tooltip at both ends of the route*/
+       .leaflet-tooltip.route-extra-label {
+         /*background-color: rgba(305, 200, 230, 0.95);!important; //pink
+         background-color: rgba(134, 230, 173, 0.9);!important; //green
+         */
+         background-color: rgba(134, 230, 173, 1);!important;
+         color: #013845 !important;
+         padding: 3px 10px;
+         font-weight: bold;
+         font-size: 12px;
+         border: none; /* optional, removes default border */
+         border-radius: 11px;
+         position: "absolute",
+       }
 
-/* Custom holding pattern tooltip */
-.leaflet-tooltip.holding-tooltip {
-  background-color: rgba(40, 80, 110, 1);
-  color: yellow;              
-  border: 1px solid grey; 
-  border-radius: 10px;      
-  padding: 6px 10px;
-  font-size: 12px;
-  font-family: Arial, sans-serif;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);;
-}
+       /*--display route with airway names at the bottom of the screen */
+       #routeTooltip {
+         position: absolute;
+         bottom: 60px;
+         left: 50%;
+         transform: translateX(-50%);
+         padding: 6px 12px;
+         background: #233139;
+         color: white;
+         font-size: 13px;
+         font-family: 'Roboto', san-serif;
+         //font-weight: bold;
+         border-radius: 12px;
+         z-index: 1001;
+         max-width: 90%;
+         text-align: center;
+         white-space: nowrap;
+         overflow: hidden;
+         text-overflow: ellipsis;
+       }
 
-/* Remove the little arrow ("tip") */
-.leaflet-tooltip.holding-tooltip::before,
-.leaflet-tooltip.holding-tooltip::after {
-  display: none !important;
-}
+       /*--display full route fix names at the bottom of the screen */
+       #expandedRouteTooltip {
+         position: absolute;
+         bottom: 23px;
+         left: 50%;
+         transform: translateX(-50%);
+         padding: 6px 12px;
+         background: #233139;
+         color: white;
+         font-size: 13.6px;
+         font-family: monospace;
+         //font-weight: bold;
+         border-radius: 12px;
+         z-index: 1001;
+         max-width: 90%;
+         text-align: center;
+         white-space: nowrap;
+         overflow: hidden;
+         text-overflow: ellipsis;
+       }
 
+       /*remove unnecessary space from top row of danger area tooltip*/
+       #areaDetailsPanel::first-line {
+         line-height: 0;   /* tighten the top */
+       }
 
-      #resetViewBtn {
-        position: absolute;
-        top: 2px;
-        left: 5px;
-        z-index: 1001;
-        width: 65px;
-        padding: 6px 10px;
-        font-size: 12px;
-        background: rgba(255, 255, 255, 0.8);
-        border: 1px solid #888;
-        border-radius: 8px;
-        cursor: pointer;
-      }
-
-      #toggleMapBtn {
-        position: absolute;
-        top: 2px;
-        left: 71px;
-        z-index: 1001;
-        width: 100px;
-        padding: 6px 10px;
-        font-size: 12px;
-        background: rgba(255, 255, 255, 0.8);
-        border: 1px solid #888;
-        border-radius: 8px;
-        cursor: pointer;
-      }
-
-      #toggleWaypointsBtn {
-        position: absolute;
-        top: 2px;
-        left: 172px;
-        z-index: 1001;
-        width: 110px;
-        padding: 6px 10px;
-        font-size: 12px;
-        background: rgba(255, 255, 255, 0.8);
-        border: 1px solid #888;
-        border-radius: 8px;
-        cursor: pointer;        
-      }
-
-      #routePanel {
-        position: absolute;
-        top: 33px;
-        left: 5px;
-        background: rgba(35, 49, 57, 0.6);
-        //border: 1px solid #ccc; //#999;
-        border-radius: 8px;
-        padding: 8px;
-        width: 150px;
-        max-height: 92%;
-        overflow: hidden;
-        //overflow-y: auto;
-        z-index: 1000;
-        color: white;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
-        display: flex;
-        flex-direction: column;
-      }
-
-      #routeList {
-        overflow-y: auto;
-        overflow-x: hidden;
-        padding-right: 6px;
-      }
-
-      #routeList::-webkit-scrollbar {
-        width: 4px; /* narrower scrollbar */
-      }
-
-      #routeList::-webkit-scrollbar-thumb {
-        background-color: rgba(200, 200, 200, 0.5); /* thumb color */
-        border-radius: 3px;
-      }
-
-      #routeList::-webkit-scrollbar-track {
-        background-color: transparent;
-      }
-
-      #routeList button {
-        display: block;
-        width: 100%;
-        margin-bottom: 5px;
-        padding: 4px;
-        font-size: 10px;
-        border-radius: 12px;
-        border: 0.1px solid grey;
-        background: #405664;
-        color: white;
-        cursor: pointer;
-        transition: transform 0.2s ease;
-        transform-origin: center;
-        will-change: transform;
-      }
-
-      #routeList button:hover {
-        transform: scale(1.2);
-        background-color: #fbc965;
-        color: black;
-        z-index: 1;
-      }
-
-      #routeList button.selected-route {
-        background-color: #fbc965; //#6999ff;
-        color: black;
-        //font-weight: bold;
-        border: 1px solid black;
-      }
-
-      /* sector tickbox list */
-      #sectorPanel {
-        position: absolute;
-        top: 3px;
-        right: 5px;
-        background: rgba(35, 49, 57, 0.7);
-        color: white;
-        font-family: sans-serif;
-        font-size: 12px;
-        border-radius: 8px;
-        overflow: hidden;
-        z-index: 1000;
-        width: 75px;
-        box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
-      }
-
-      #sectorHeader {
-        // background: #222;
-        padding: 8px;
-        cursor: pointer;
-        font-weight: bold;
-        text-align: center;
-      }
-
-      #sectorOptions {
-        padding: 8px;
-        //display: none; /* start collapsed */
-        max-height: 410px;
-        overflow-y: auto;
-      }
-
-      #sectorOptions label {
-        display: block;
-        margin: 4px 0;
-        font-size: 11px;
-        cursor: pointer;
-      }
-
-      #sectorOptions {
-        overflow-y: auto;
-        overflow-x: hidden;
-        padding-right: 6px;
-      }
-
-      #sectorOptions::-webkit-scrollbar {
-        width: 4px; /* narrower scrollbar */
-      }
-
-      #sectorOptions::-webkit-scrollbar-thumb {
-        background-color: rgba(200, 200, 200, 0.5); /* thumb color */
-        border-radius: 3px;
-      }
-
-      #sectorOptions::-webkit-scrollbar-track {
-        background-color: transparent;
-      }
-
-      /*--display sector initials at the bottom of the screen */
-      #sectorTooltip {
-        position: absolute;
-        bottom: 95px;
-        left: 50%;
-        transform: translateX(-50%);
-        padding: 6px 12px;
-        background: #233139;
-        color: white;
-        font-size: 14px;
-        font-family: 'Roboto', san-serif;
-        //font-weight: bold;
-        border-radius: 12px;
-        z-index: 1001;
-        max-width: 90%;
-        text-align: center;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
-
-      /*--display route with airway names at the bottom of the screen */
-      #routeTooltip {
-        position: absolute;
-        bottom: 60px;
-        left: 50%;
-        transform: translateX(-50%);
-        padding: 6px 12px;
-        background: #233139;
-        color: white;
-        font-size: 13px;
-        font-family: 'Roboto', san-serif;
-        //font-weight: bold;
-        border-radius: 12px;
-        z-index: 1001;
-        max-width: 90%;
-        text-align: center;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
-
-      /*--display full route fix names at the bottom of the screen */
-      #expandedRouteTooltip {
-        position: absolute;
-        bottom: 23px;
-        left: 50%;
-        transform: translateX(-50%);
-        padding: 6px 12px;
-        background: #233139;
-        color: white;
-        font-size: 13.6px;
-        font-family: monospace;
-        //font-weight: bold;
-        border-radius: 12px;
-        z-index: 1001;
-        max-width: 90%;
-        text-align: center;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
-
-#zoomSliderPanel {
-  position: absolute;
-  bottom: 15px;
-  right: 15px;
-  background: rgba(0,0,0,0.6);
-  padding: 8px;
-  border-radius: 10px;
-  z-index: 1500; /* ensure above map */
-}
-
-#zoomSlider {
-  width: 150px;
-}
-
-      #routeFilters {
-        display: flex;
-        justify-content: space-between;
-        margin-bottom: 8px;
-        background: rgba(0, 0, 0, 0.15);
-        border-bottom: 1px solid #888;
-      }
-
-      .filter-btn {
-        flex: 1;
-        padding: 4px;
-        margin: 2px;
-        color: #486170;
-        font-size: 12px;
-        border-radius: 8px;
-        border: none;
-        cursor: pointer;
-        background: #bfbfbf;
-      }
-
-      .filter-btn.selected {
-        background-color: #fbc965; //orange;
-        color: black; //
-        font-size: 12px;
-        font-weight: bold;
-        border: 1px solid black;
-      }
-
-      .arrow-head {
-        width: 3px;
-        height: 3px;
-        background: url('data:image/svg+xml;utf8,<svg fill="yellow" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="40"/></svg>')
-          no-repeat center;
-        background-size: contain;
-        transform-origin: center;
-      }
+       /*add yellow spot at the end of the drawn route line*/
+       .arrow-head {
+         width: 3px;
+         height: 3px;
+         background: url('data:image/svg+xml;utf8,<svg fill="yellow" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="40"/></svg>')
+           no-repeat center;
+         background-size: contain;
+         transform-origin: center;
+       }
     </style>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-    <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
 
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto&display=swap"
+      rel="stylesheet"
+    />
   </head>
 
-  <body>
-    <div id="routePanel">
-      <div id="routeFilters">
-        <button onclick="filterRoutes('Arr')" class="filter-btn selected">Arr</button>
-        <button onclick="filterRoutes('Dep')" class="filter-btn">Dep</button>
-        <button onclick="filterRoutes('Ovf')" class="filter-btn">Ovf</button>
-        <button onclick="filterRoutes('FRA')" class="filter-btn">FRA</button>
+    <!-- Menu bar for buttons -->
+    <div id="mapMenuBar" class="map-menu-bar">
+      <button id="resetViewBtn" class="map-btn">Clear</button>
+      <button id="toggleMapBtn" class="map-btn">Toggle Map</button>
+      <button id="toggleWaypointsBtn" class="map-btn">Names: ON</button>
+      <button id="toggleTableBtn" class="map-btn">Sector Info ▸</button>
+      <button id="showHoldingsBtn" class="map-btn">Holdings ▸</button>
+      <div id="areasPanel" class="map-btn-panel">
+        <button id="toggleAreasBtn" class="map-btn">Areas ▸</button>
+        <div id="areasCheckboxes" class="areas-checkboxes">
+          <label
+            ><input type="checkbox" id="toggleProhibitated" />
+            Prohibitated</label
+          >
+          <label
+            ><input type="checkbox" id="toggleRestricted" /> Restricted</label
+          >
+          <label><input type="checkbox" id="toggleDanger" /> Danger</label>
+          <label><input type="checkbox" id="toggleTraining" /> Training</label>
+          <label><input type="checkbox" id="toggleDetails" /> Info</label>
+        </div>
       </div>
-      <div id="routeList"></div>
     </div>
 
+    <!--route filter buttons -->
+    <body>
+      <div id="routePanel">
+        <div id="routeFilters">
+          <button onclick="filterRoutes('Arr')" class="filter-btn selected">
+            Arr
+          </button>
+          <button onclick="filterRoutes('Dep')" class="filter-btn">Dep</button>
+          <button onclick="filterRoutes('Ovf')" class="filter-btn">Ovf</button>
+          <button onclick="filterRoutes('FRA')" class="filter-btn">FRA</button>
+        </div>
+        <div id="routeList"></div>
+      </div>
+
+    <!--sector check box buttons -->
     <div id="sectorPanel">
       <div id="sectorHeader" onclick="toggleSectorPanel()">Sectors ▸</div>
       <div id="sectorOptions">
@@ -408,92 +492,88 @@
       </div>
     </div>
 
-    <button id="resetViewBtn" class="map-btn">Clear</button>
-    <button id="toggleMapBtn" class="map-btn">Toggle Map</button>
-    <button id="toggleWaypointsBtn" class="map-btn">Names: ON</button>
-  
-    <!--Table Toggle Button -->
-    <button id="toggleTableBtn" 
-            style="position:absolute; top:2px; left:283px; z-index:1500;
-                   background:rgba(255,255,255,0.8); border:1px solid #888; height:28px; width:96px;
-                   border-radius:8px; padding:6px 10px; font-size:12px; cursor:pointer;">
-      Sector Info ▸
-    </button>
+    <!-- Floating Table for sector info-->
+    <div
+      id="sectorTablePanel"
+      style="
+        position: absolute;
+        top: 32px;
+        left: 174px;
+        background: rgba(35, 49, 57, 0.6);
+        color: white;
+        padding: 10px;
+        border-radius: 8px;
+        font-size: 11px;
+        font-family: sans-serif;
+        z-index: 1500;
+        display: none;
+      ">
+
+      <table
+        id="sectorTable"
+        border="1"
+        cellpadding="5"
+        cellspacing="0"
+        style="border-collapse: collapse; background: #2c3e50; color: white"
+      >
+        <thead>
+          <tr>
+            <th>Sectors</th>
+            <th>Limit</th>
+            <th>Freq</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+
+<!-- Top-center Daneger-Areas-Details Tooltip Panel -->
+
+<div id="areaDetailsPanel" style="position:absolute; top:30px; left:50%; 
+    transform:translateX(-50%); background:rgba(10, 60, 70, 1); white-space: pre-wrap;
+    padding:8px 12px; border-radius:10px; border: 1px solid grey; font-size:13px; font-family: Arial, sans-serif;
+    display:none; z-index:2000; text-align:left; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4); line-height: 1.5;">
+  <strong id="areaName">Area</strong>
+  <span id="areaLimit"></span>
+  <span id="areaType"></span>
+</div>
+
+<!-- zoonslider at the bottom of the screen styling-->
+    <div
+      id="zoomSliderPanel"
+      style="
+        position: absolute;
+        bottom: 15px;
+        right: 15px;
+        background: rgba(0, 0, 0, 0.1);
+        padding: 8px;
+        border-radius: 16px;
+        color: white;
+        font-size: 8px;
+        font-family: sans-serif;
+        width: 150px;
+      ">
+      <label for="zoomSlider"></label>
+      <input
+        type="range"
+        id="zoomSlider"
+        min="5"
+        max="12"
+        step="0.3"
+        value="7"
+      />
+      <span id="zoomValue">7.0</span>
+    </div>
 
     <div id="map"></div>
     <div id="sectorTooltip">Sectors:</div>
     <div id="routeTooltip">Route:</div>
     <div id="expandedRouteTooltip">Waypoints:</div>
 
-<!-- Floating Table for sector info-->
-<div id="sectorTablePanel"
-     style="position:absolute; top:32px; left:174px; 
-            background:rgba(35, 49, 57, 0.6); color:white;
-            padding:10px; border-radius:8px; font-size:11px; 
-            font-family:sans-serif; z-index:1500; display:none;">
-  <table id="sectorTable" border="1" cellpadding="5" cellspacing="0"
-         style="border-collapse:collapse; background:#2c3e50; color:white;">
-    <thead>
-      <tr>
-        <th>Sectors</th>
-        <th>Limit</th>
-        <th>Freq</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
-</div>
-
-<!-- Holding button to show holding points -->
-<button id="showHoldingsBtn" 
-        style="position:absolute; top:2px; left:380px; z-index:1500;
-                   background:rgba(255,255,255,0.8); border:1px solid #888; height:28px; width:96px;
-                   border-radius:8px; padding:6px 10px; font-size:12px; cursor:pointer;">
-  Holdings ▸
-</button>
-
-    <div id="zoomSliderPanel" style="position:absolute; bottom:15px; right:15px; 
-                background:rgba(0,0,0,0.1); padding:8px; border-radius:8px; 
-                z-index:1500; color:white; font-size:8px;font-family:sans-serif;">
-      <label for="zoomSlider">Zoom:</label>
-      <input type="range" id="zoomSlider" min="5" max="12" step="0.3" value="7">
-      <span id="zoomValue">7.0</span>
-    </div>
-
-
-<!-- Add Details checkbox under Areas panel -->
-<div id="areasPanel" style="position:absolute; top:2px; left:478px; z-index:1000;">
-  <button onclick="toggleAreasPanel()"
-          style="background:rgba(255,255,255,0.8); border:none; padding:6px 12px; 
-                 height:28px; width:96px; border-radius:8px; cursor:pointer;">
-    Areas ▸
-  </button>
-  <div id="areasCheckboxes" style="display:none; background:rgba(255,255,255,0.8); 
-                                   padding:8px; margin-top:1px;border-radius:6px;
-                                   box-shadow:0 0 6px rgba(0,0,0,0.3); font-size:11px; font-family:sans-serif;">
-    <label><input type="checkbox" id="toggleProhibitated"> Prohibitated</label><br>
-    <label><input type="checkbox" id="toggleRestricted"> Restricted</label><br>
-    <label><input type="checkbox" id="toggleDanger"> Danger</label><br>
-    <label><input type="checkbox" id="toggleTraining"> Training</label><br>
-    <label><input type="checkbox" id="toggleDetails"> Info</label>
-  </div>
-</div>
-
-
-<!-- Top-center Areas Details Tooltip Panel -->
-<div id="areaDetailsPanel" style="position:absolute; top:30px; left:50%; 
-    transform:translateX(-50%); background:rgba(40, 73, 82, 1);
-    padding:8px 12px; border-radius:10px; border: 1px solid grey; font-size:13px; font-family: Arial, sans-serif;
-    display:none; z-index:2000; text-align:left; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4); line-height: 1.5;">
-  <strong id="areaName">Area</strong><br>
-  <span id="areaLimit"></span><br>
-  <span id="areaType"></span>
-</div>
-
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
     <script>
-
       function convertDMSToDecimal(dmsStr) {
         const match = dmsStr.match(
           /^(\d{2,3})(\d{2})(\d{2}(?:\.\d+)?)([NSWE])$/
@@ -506,6 +586,7 @@
         return decimal;
       }
 
+     //main map border coordinates
       const rawCoords = [
         ["262100N", "0560600E"],
         ["253600N", "0561300E"],
@@ -523,6 +604,7 @@
       const sectorPolygons = {};
       const sectorLayers = {};
 
+     //convert coordinates decimal numbers
       const latlngs = rawCoords
         .map(([latDMS, lonDMS]) => [
           convertDMSToDecimal(latDMS),
@@ -530,6 +612,7 @@
         ])
         .filter(([lat, lon]) => lat !== null && lon !== null);
 
+     //sector coordinates
       const southCoords = [
         ["252629.4279N", "0524901.1237E"],
         ["251727.2300N", "0531010.5921E"],
@@ -818,14 +901,14 @@
         ASNAX: ["245659N", "0524054E"],
         ASNEK: ["255630.7N", "0554904.7E"],
         ASNIB: ["243982N", "0572109E"],
-        ASPAK: ["262115.49N", "0522257E"], 
+        ASPAK: ["262115.49N", "0522257E"],
         ASPED: ["240036N", "0553154E"],
         ASRAT: ["242114N", "0535944E"],
         ASTOG: ["252822N", "0525025E"],
         ATUDO: ["241708.0N", "0543432.0E"],
         BAH: ["261625N", "0503801E"],
         BND: ["271182N", "0562201E"],
-        BONAN: ["260200.60N","0515505.41E"],
+        BONAN: ["260200.60N", "0515505.41E"],
         BOPEK: ["230098N", "0520012E"],
         BOPIT: ["235947N", "0540404E"],
         BOPOV: ["262429.69N", "0515043.17E"],
@@ -1088,467 +1171,1105 @@
         VUXOD: ["242005N", "0543625E"],
       };
 
-    const airways = {
-     "A777": ["TONVO", "BUBAS", "NADSO"], //EXTERNAL
-     "A791-": ["IMLOT", "GIDIL", "LALDO"], //EXTERNA
-     "A791": ["LALDO", "GIDIL", "IMLOT", "KATUS"],
-     "B415": ["DOH", "KUPSA", "BUNDU", "ASNAX", "EGPOG", "UKILI", "KUGTO", "RURAL", "SIXIV"],
-     "B505": ["LALDO", "NADSO"], //EXTERNAL
-     "B540": ["GERAR", "DEGNU", "PASOV", "KUPMA", "ORKOB", "MIVEK"],
-     "B541": ["KIS", "ORSAR"], //EXTERNAL
-     "G462": ["ROVOS", "TUBGO", "ULODA", "KUVDA", "ORBOL", "UKUVO", "OXARI", "PURLI", "TUMAK"],
-     "G666": ["LVA", "DATUT", "ELIRA", "ORSAR", "LUDAM", "KIVUS", "TOTKU", "ULIVA", "VEGEK", "REVAV", "ITOMI", "ELOVU"],
-     "G783-": ["GIDIS", "DESVU", "VAVIM", "ASPED", "ELUDA", "UKRAG", "RIGIL", "TANSU"],
-     "G783": ["IMGOV", "DANUX", "TANSU", "RIGIL", "UKRAG", "ELUDA", "ASPED", "VAVIM"],
-     "L223": ["UKVUP", "SIR", "TATLA", "VUTEB", "LOVEM", "IVOXI", "LAGTA", "ANVIX", "PEDUL", "KIPOK", "TARDI", "NOSMI", "BOTAM"],
-     "L305": ["DOH", "ENANO", "ALSEM", "ASTOG", "PURLI", "GODKI", "KIVUS", "ITBUL", "EMOTA"],
-     "L313": ["EGPEP", "KULBA", "IMPED", "KIPOK"],
-     "L519": ["PATAT", "EGPEP", "ITLAP", "PUVAL", "DETGU", "SERSA", "IVOXI", "VEKAL", "KUTLI", "GEVIV", "ODKUN", "VUXOD", "ATUDO"],
-     "L710": ["UKRAG", "MEMTU", "GOGMI", "ITKUN"],     
-     "L768": ["ALPOB", "ROTAG", "ITMUB", "MODOG", "RABLA"],
-     "M317": ["RADEB", "SERDU"], //EXTERNAL
-     "M318-": ["ATUDO" ,"MUSEN", "BOPIT", "DANOK", "ESROM", "GOLGU"],
-     "M318": ["MEDPO", "KATIT", "MUXIT", "GOLGU", "ESROM", "DANOK", "BOPIT", "MUSEN", "ATUDO", "RURAL", "IMLIP", "KUVDA", "TULON", "VEKOV", "EGTAG", "MITIX", "LOVEM", "TOVIV", "DAVMO", "GABKO", "RADEB", "KHM"],
-     "M324": ["BND", "MOBET", "PATAT"], //EXTERNAL
-     "M428": ["IVURO", "SUTVO", "GOMTA", "TARBO"],
-     "M430": ["OXARI", "TAGDU", "RORON", "PUTIB", "TOSNA", "DOH"],
-     "M550": ["MIGMA", "BOPEK", "RIBOT", "GOLGU"],
-     "M557": ["IVOXI", "MITIX", "RIDAP", "OTIKI", "TOTKU", "GODKI", "RALMI", "TUMAK"],
-     "M564": ["PASOV", "PUXIL", "VAXAS", "NALNU", "UMAMI"],
-     "M572": ["NOLSU", "GOMTA"],
-     "M628": ["MIGMA", "KATIT", "PEKEM", "RIGIL"],
-     "M628-":["LABSA", "GOGMI", "LUDID", "RIGIL", "PEKEM", "KATIT"], 
-     "M677-": ["LALDO", "KUSEN", "IVURO", "TUKSI"],
-     "M677": ["SOGAN", "UKNEP", "DEGSO", "OBNET", "LUDAM", "ITBUL", "DIXAM", "VUTEB", "LOVEM", "KURTU", "MISEG", "TUKSI", "IVURO", "KUSEN", "LALDO"],
-     "M762": ["VELOD", "GEXAN", "TAPRA", "VAXAS", "RUDAT", "MIVEK" ],
-     "N300": ["DOH", "KUPRO", "MIBRU", "RUGIS", "KAXOB", "GIDOB", "ORBOL", "LORID", "VEKOV", "OBREV", "LAGTA", "RUKOR", "NOLSU", "SUTVO", "LALDO"],
-     "N300-": ["RUKOR", "LAGTA", "OBREV"],
-     "N317": ["MENSA", "NOLSU", "REXEV", "NADNI"],
-     "N318": ["VELAM", "VUTAN", "RESAR", "OVONA", "PUTIB", "BOXOT", "KAPUM", "BOSEV", "MOGIM", "IMLIP", "ELEPO", "SIXIV", "KANIP", "LABRI", "EGROK", "LAKLU"],
-     "N563": ["TULBU", "MEKNA", "KURTA", "SODEX", "ELUDA", "NOBTO", "SIGMO", "VUXOD", "UMIBU", "KUGTO", "BOSEV", "ITKEV", "KUSBA", "TAGDU", "IMGUX", "ALPOB"],
-     "N571": ["KIROP", "ASNIB", "MENSA", "LUBAT", "ENEGA", "RUKOR", "IVOXI", "TUDIS", "SENPA", "RUDUK", "ULIVA", "SISOB", "PURLI", "ALPOB"],
-     "N685": ["EMISA", "KAPAX", "ORSIS", "ENANO", "TOSNA", "UMEVU", "KAPUM", "GIDOB", "SUVDU", "RURAL", "ODKUN", "NAPMA", "ORNEL", "RETAS", "KOBIM", "PUTSO"],
-     "P307": ["SERSA", "PAVAG", "ITBON", "KULBA", "NOLSU", "TONVO", "PURNI"],
-     "P440": ["ALGUX", "ASRAT", "ELIGA", "EMIXI"],
-     "P555": ["OBVOM", "LONUT", "IMKUD", "RAPNO", "ATUDO"],
-     "P559": ["ROSAN", "KUMLA", "ASPAK", "UKUBU", "TOMSO", "NALPO", "SOKAK", "KIVUS", "PUSOT", "AMBOV", "VUTEB"],
-     "P574": ["DAPOK", "EMATA", "SOLUD", "PUXIL", "GISMO", "MIVEK", "IMPED", "NORGA", "RUKOR", "SERSA", "TOVIV", "KUMUN"],
-     "P574-": ["DAPER", "DENSA"],
-     "P699": ["TUKSI", "PAVAG", "IVOXI", "TUDIS", "EGTAG", "NABIX", "MOBUL", "VEGEK", "RAGDO", "OXARI", "IMGUX", "ORMID", "DASLO", "ALKAN", "BONAN", "VEDED"],
-     "P899": ["VELOD", "PAXIM", "ITRAX", "VAVIM", "ROVOS", "SIXIV", "UMIBU", "MEKRI", "KUMSI", "TOVOX", "KUPSA"],
-     "Q308": ["ASPED", "PEDOG", "MURGU", "KIPOK", "RUDAT", "ORKOB"],
-     "Q311": ["IVOXI", "OBREV", "EMERU", "TONKI", "NABUN"],
-     "Q312": ["REVAV", "GERUL"],
-     "Q317": ["RURAL", "UKNAV", "EGROP", "LORID"],
-     "Q321": ["TOVIV", "DETGU", "KURTU", "NOLSU"],
-     "Q322": ["AMBOV", "DATOB", "LOVEM"],
-     "Q322": ["ITBUL", "PUSOT", "AMBOV", "DATOB", "LOVEM"],
-     "Q323": ["MITIX", "PAVAG"],
-     "Q415": ["UMEVU", "KAXOB", "ALNEV", "UKILI", "KUGTO", "IMLIP", "GEVIV", "UKVAK", "IMPED", "LUBAT", "TONVO"],
-     "Q563": ["DAXIB", "UKUVO", "IMGUX"],
-     "Q565": ["BOSEV", "UKUVO"],
-     "Q568": ["KIPOK", "NALNU", "IMPED"],
-     "Q569": ["VUTEB", "MITIX", "OBREV"],
-     "Q572": ["ALRAR", "LOVEM", "SERSA"],
-     "Q576": ["EGTAG", "MIROT", "REVAV", "UKUVO", "KUSBA", "RORON"],
-     "Q666": ["EGPOG", "ALNEV", "GIDOB"],
-     "R401": ["LABSA", "KURTA", "MUSAP", "PEDOG", "GIDIS", "ANVIX", "NORGA", "ITBON", "MISEG", "ITLAP", "ASNEK", "GABKO"],
-     "R784": ["EGMIT", "LEVNA", "ORSAR", "GIBIB", "EMOTA", "TATLA", "GONVI", "ALRAR", "TOVIV", "ALSIL", "EMOPI", "KUSEN"],
-     "T509": ["PASOV","MENSA", "FJV"],
-     "T560": ["ORNEL", "ELUDA"],
-     "T602": ["TUMAK", "VEDOME", "ORLUP", "VELAK", "LABOP", "BOPOV"],
-     "T891": ["ORKOB", "LUBAT", "NOLSU"],
-     "Y552": ["NABUN", "SIGMO", "NAPMA", "TUBGO", "UKVAK", "RUKOR"],
-     "Z522": ["KAPUM", "ALNEV"]
-     //"B547": ["KIS", "SIR"], //EXTERNAL
-    };
+      const airways = {
+        A777: ["TONVO", "BUBAS", "NADSO"], //EXTERNAL
+        "A791-": ["IMLOT", "GIDIL", "LALDO"], //EXTERNA
+        A791: ["LALDO", "GIDIL", "IMLOT", "KATUS"],
+        B415: [
+          "DOH",
+          "KUPSA",
+          "BUNDU",
+          "ASNAX",
+          "EGPOG",
+          "UKILI",
+          "KUGTO",
+          "RURAL",
+          "SIXIV",
+        ],
+        B505: ["LALDO", "NADSO"], //EXTERNAL
+        B540: ["GERAR", "DEGNU", "PASOV", "KUPMA", "ORKOB", "MIVEK"],
+        B541: ["KIS", "ORSAR"], //EXTERNAL
+        G462: [
+          "ROVOS",
+          "TUBGO",
+          "ULODA",
+          "KUVDA",
+          "ORBOL",
+          "UKUVO",
+          "OXARI",
+          "PURLI",
+          "TUMAK",
+        ],
+        G666: [
+          "LVA",
+          "DATUT",
+          "ELIRA",
+          "ORSAR",
+          "LUDAM",
+          "KIVUS",
+          "TOTKU",
+          "ULIVA",
+          "VEGEK",
+          "REVAV",
+          "ITOMI",
+          "ELOVU",
+        ],
+        "G783-": [
+          "GIDIS",
+          "DESVU",
+          "VAVIM",
+          "ASPED",
+          "ELUDA",
+          "UKRAG",
+          "RIGIL",
+          "TANSU",
+        ],
+        G783: [
+          "IMGOV",
+          "DANUX",
+          "TANSU",
+          "RIGIL",
+          "UKRAG",
+          "ELUDA",
+          "ASPED",
+          "VAVIM",
+        ],
+        L223: [
+          "UKVUP",
+          "SIR",
+          "TATLA",
+          "VUTEB",
+          "LOVEM",
+          "IVOXI",
+          "LAGTA",
+          "ANVIX",
+          "PEDUL",
+          "KIPOK",
+          "TARDI",
+          "NOSMI",
+          "BOTAM",
+        ],
+        L305: [
+          "DOH",
+          "ENANO",
+          "ALSEM",
+          "ASTOG",
+          "PURLI",
+          "GODKI",
+          "KIVUS",
+          "ITBUL",
+          "EMOTA",
+        ],
+        L313: ["EGPEP", "KULBA", "IMPED", "KIPOK"],
+        L519: [
+          "PATAT",
+          "EGPEP",
+          "ITLAP",
+          "PUVAL",
+          "DETGU",
+          "SERSA",
+          "IVOXI",
+          "VEKAL",
+          "KUTLI",
+          "GEVIV",
+          "ODKUN",
+          "VUXOD",
+          "ATUDO",
+        ],
+        L710: ["UKRAG", "MEMTU", "GOGMI", "ITKUN"],
+        L768: ["ALPOB", "ROTAG", "ITMUB", "MODOG", "RABLA"],
+        M317: ["RADEB", "SERDU"], //EXTERNAL
+        "M318-": ["ATUDO", "MUSEN", "BOPIT", "DANOK", "ESROM", "GOLGU"],
+        M318: [
+          "MEDPO",
+          "KATIT",
+          "MUXIT",
+          "GOLGU",
+          "ESROM",
+          "DANOK",
+          "BOPIT",
+          "MUSEN",
+          "ATUDO",
+          "RURAL",
+          "IMLIP",
+          "KUVDA",
+          "TULON",
+          "VEKOV",
+          "EGTAG",
+          "MITIX",
+          "LOVEM",
+          "TOVIV",
+          "DAVMO",
+          "GABKO",
+          "RADEB",
+          "KHM",
+        ],
+        M324: ["BND", "MOBET", "PATAT"], //EXTERNAL
+        M428: ["IVURO", "SUTVO", "GOMTA", "TARBO"],
+        M430: ["OXARI", "TAGDU", "RORON", "PUTIB", "TOSNA", "DOH"],
+        M550: ["MIGMA", "BOPEK", "RIBOT", "GOLGU"],
+        M557: [
+          "IVOXI",
+          "MITIX",
+          "RIDAP",
+          "OTIKI",
+          "TOTKU",
+          "GODKI",
+          "RALMI",
+          "TUMAK",
+        ],
+        M564: ["PASOV", "PUXIL", "VAXAS", "NALNU", "UMAMI"],
+        M572: ["NOLSU", "GOMTA"],
+        M628: ["MIGMA", "KATIT", "PEKEM", "RIGIL"],
+        "M628-": ["LABSA", "GOGMI", "LUDID", "RIGIL", "PEKEM", "KATIT"],
+        "M677-": ["LALDO", "KUSEN", "IVURO", "TUKSI"],
+        M677: [
+          "SOGAN",
+          "UKNEP",
+          "DEGSO",
+          "OBNET",
+          "LUDAM",
+          "ITBUL",
+          "DIXAM",
+          "VUTEB",
+          "LOVEM",
+          "KURTU",
+          "MISEG",
+          "TUKSI",
+          "IVURO",
+          "KUSEN",
+          "LALDO",
+        ],
+        M762: ["VELOD", "GEXAN", "TAPRA", "VAXAS", "RUDAT", "MIVEK"],
+        N300: [
+          "DOH",
+          "KUPRO",
+          "MIBRU",
+          "RUGIS",
+          "KAXOB",
+          "GIDOB",
+          "ORBOL",
+          "LORID",
+          "VEKOV",
+          "OBREV",
+          "LAGTA",
+          "RUKOR",
+          "NOLSU",
+          "SUTVO",
+          "LALDO",
+        ],
+        "N300-": ["RUKOR", "LAGTA", "OBREV"],
+        N317: ["MENSA", "NOLSU", "REXEV", "NADNI"],
+        N318: [
+          "VELAM",
+          "VUTAN",
+          "RESAR",
+          "OVONA",
+          "PUTIB",
+          "BOXOT",
+          "KAPUM",
+          "BOSEV",
+          "MOGIM",
+          "IMLIP",
+          "ELEPO",
+          "SIXIV",
+          "KANIP",
+          "LABRI",
+          "EGROK",
+          "LAKLU",
+        ],
+        N563: [
+          "TULBU",
+          "MEKNA",
+          "KURTA",
+          "SODEX",
+          "ELUDA",
+          "NOBTO",
+          "SIGMO",
+          "VUXOD",
+          "UMIBU",
+          "KUGTO",
+          "BOSEV",
+          "ITKEV",
+          "KUSBA",
+          "TAGDU",
+          "IMGUX",
+          "ALPOB",
+        ],
+        N571: [
+          "KIROP",
+          "ASNIB",
+          "MENSA",
+          "LUBAT",
+          "ENEGA",
+          "RUKOR",
+          "IVOXI",
+          "TUDIS",
+          "SENPA",
+          "RUDUK",
+          "ULIVA",
+          "SISOB",
+          "PURLI",
+          "ALPOB",
+        ],
+        N685: [
+          "EMISA",
+          "KAPAX",
+          "ORSIS",
+          "ENANO",
+          "TOSNA",
+          "UMEVU",
+          "KAPUM",
+          "GIDOB",
+          "SUVDU",
+          "RURAL",
+          "ODKUN",
+          "NAPMA",
+          "ORNEL",
+          "RETAS",
+          "KOBIM",
+          "PUTSO",
+        ],
+        P307: ["SERSA", "PAVAG", "ITBON", "KULBA", "NOLSU", "TONVO", "PURNI"],
+        P440: ["ALGUX", "ASRAT", "ELIGA", "EMIXI"],
+        P555: ["OBVOM", "LONUT", "IMKUD", "RAPNO", "ATUDO"],
+        P559: [
+          "ROSAN",
+          "KUMLA",
+          "ASPAK",
+          "UKUBU",
+          "TOMSO",
+          "NALPO",
+          "SOKAK",
+          "KIVUS",
+          "PUSOT",
+          "AMBOV",
+          "VUTEB",
+        ],
+        P574: [
+          "DAPOK",
+          "EMATA",
+          "SOLUD",
+          "PUXIL",
+          "GISMO",
+          "MIVEK",
+          "IMPED",
+          "NORGA",
+          "RUKOR",
+          "SERSA",
+          "TOVIV",
+          "KUMUN",
+        ],
+        "P574-": ["DAPER", "DENSA"],
+        P699: [
+          "TUKSI",
+          "PAVAG",
+          "IVOXI",
+          "TUDIS",
+          "EGTAG",
+          "NABIX",
+          "MOBUL",
+          "VEGEK",
+          "RAGDO",
+          "OXARI",
+          "IMGUX",
+          "ORMID",
+          "DASLO",
+          "ALKAN",
+          "BONAN",
+          "VEDED",
+        ],
+        P899: [
+          "VELOD",
+          "PAXIM",
+          "ITRAX",
+          "VAVIM",
+          "ROVOS",
+          "SIXIV",
+          "UMIBU",
+          "MEKRI",
+          "KUMSI",
+          "TOVOX",
+          "KUPSA",
+        ],
+        Q308: ["ASPED", "PEDOG", "MURGU", "KIPOK", "RUDAT", "ORKOB"],
+        Q311: ["IVOXI", "OBREV", "EMERU", "TONKI", "NABUN"],
+        Q312: ["REVAV", "GERUL"],
+        Q317: ["RURAL", "UKNAV", "EGROP", "LORID"],
+        Q321: ["TOVIV", "DETGU", "KURTU", "NOLSU"],
+        Q322: ["AMBOV", "DATOB", "LOVEM"],
+        Q322: ["ITBUL", "PUSOT", "AMBOV", "DATOB", "LOVEM"],
+        Q323: ["MITIX", "PAVAG"],
+        Q415: [
+          "UMEVU",
+          "KAXOB",
+          "ALNEV",
+          "UKILI",
+          "KUGTO",
+          "IMLIP",
+          "GEVIV",
+          "UKVAK",
+          "IMPED",
+          "LUBAT",
+          "TONVO",
+        ],
+        Q563: ["DAXIB", "UKUVO", "IMGUX"],
+        Q565: ["BOSEV", "UKUVO"],
+        Q568: ["KIPOK", "NALNU", "IMPED"],
+        Q569: ["VUTEB", "MITIX", "OBREV"],
+        Q572: ["ALRAR", "LOVEM", "SERSA"],
+        Q576: ["EGTAG", "MIROT", "REVAV", "UKUVO", "KUSBA", "RORON"],
+        Q666: ["EGPOG", "ALNEV", "GIDOB"],
+        R401: [
+          "LABSA",
+          "KURTA",
+          "MUSAP",
+          "PEDOG",
+          "GIDIS",
+          "ANVIX",
+          "NORGA",
+          "ITBON",
+          "MISEG",
+          "ITLAP",
+          "ASNEK",
+          "GABKO",
+        ],
+        R784: [
+          "EGMIT",
+          "LEVNA",
+          "ORSAR",
+          "GIBIB",
+          "EMOTA",
+          "TATLA",
+          "GONVI",
+          "ALRAR",
+          "TOVIV",
+          "ALSIL",
+          "EMOPI",
+          "KUSEN",
+        ],
+        T509: ["PASOV", "MENSA", "FJV"],
+        T560: ["ORNEL", "ELUDA"],
+        T602: ["TUMAK", "VEDOME", "ORLUP", "VELAK", "LABOP", "BOPOV"],
+        T891: ["ORKOB", "LUBAT", "NOLSU"],
+        Y552: ["NABUN", "SIGMO", "NAPMA", "TUBGO", "UKVAK", "RUKOR"],
+        Z522: ["KAPUM", "ALNEV"],
+        //"B547": ["KIS", "SIR"], //EXTERNAL
+      };
 
-    const routeSectors = {
-      "BUNDU-LABRI": ["S", "B"],
-      "BUNDU-RETAS": ["S", "B"],
-      "BUNDU-TONVO": ["S", "M"],
-      "ITRAX-ALPOB": ["B", "S", "C"],
-      "ITRAX-ALPOB": ["B", "S", "C"],
-      "ITRAX-ORMID*": ["B", "S", "C"],
-      "ITRAX-ORMID": ["B", "S", "C"],
-      "ITRAX-TOVOX": ["B", "S", "C"],
-      "ITRAX-TUMAK": ["B", "S", "C"],
-      "ITRAX-TUMAK*": ["B", "S", "C"],
-      "KUPRO-GABKO": ["S", "M"],
-      "KUPRO-LALDO*": ["S", "G", "D", "H", "R"],
-      "KUPRO-LALDO": ["S", "M"],
-      "KUPRO-TONVO": ["S", "M"],
-      "LALDO-ALPOB": ["M", "C"],
-      "LALDO-ORMID": ["M", "C"],
-      "LALDO-TOSNA": ["M", "C"],
-      "LALDO-TUMAK": ["M", "C"],
-      "LUDID-PEKEM": ["L"],
-      "LUDID-TANSU": ["L"],
-      "MENSA-ALPOB": ["M", "C"],
-      "MENSA-KUMUN": ["M"],
-      "MENSA-ORMID": ["M", "C"],
-      "MENSA-TOSNA": ["M", "C"],
-      "MENSA-TUMAK": ["M", "C"],
-      "MUSAP-KUMUN": ["M"],
-      "NALPO-GABKO": ["N", "M"],
-      "NALPO-LALDO": ["N", "M"],
-      "NALPO-TARDI": ["N", "M"],
-      "NALPO-TONVO": ["N", "M"],
-      "OBNET-GABKO": ["N", "M"],
-      "OBNET-LALDO": ["N", "M"],
-      "OBNET-TARDI": ["N", "M"],
-      "OBNET-TONVO": ["N", "M"],
-      "ORSAR-LALDO": ["N", "M"],
-      "ORSAR-TARDI": ["N", "M"],
-      "ORSAR-TONVO": ["N", "M"],
-      "OVONA-LABRI": ["S", "B"],
-      "OVONA-RETAS": ["S", "B"],
-      "PATAT-ALPOB": ["M", "C"],
-      "PATAT-ORMID": ["M", "C"],
-      "PATAT-TARDI": ["M"],
-      "PATAT-TOSNA": ["M", "C"],
-      "PATAT-TUMAK": ["M", "C"],
-      "PEKEM-GABKO": ["L", "B", "M"],
-      "SIR-LALDO": ["N", "M"],
-      "SIR-TARDI": ["N", "M"],
-      "SIR-TONVO": ["N", "M"],
-      "SODEX-ALPOB": ["B", "S", "C"],
-      "SODEX-ORMID": ["B", "S", "C"],
-      "SODEX-TOVOX": ["B", "S"],
-      "SODEX-TUMAK": ["B", "S", "C"],
-      "SOLUD-ALPOB": ["M", "C"],
-      "SOLUD-GABKO": ["M"],
-      "SOLUD-KUMUN": ["M"],
-      "SOLUD-ORMID": ["M", "C"],
-      "SOLUD-TUMAK": ["M", "C"],
-      "TANSU-GABKO": ["L", "B", "M"],
-      "TOSNA-LABRI": ["S", "B"],
-      "TOSNA-RETAS": ["S", "B"],
-      "OMAA,AD-ALPOB": ["D", "C"],
-      "OMAA,AD-GABKO": ["H", "M"],
-      "OMAA,AD-KATIT": ["H", "L"],
-      "OMAA,AD-KUMUN": ["H", "M"],
-      "OMAA,AD-LABRI": ["A"],
-      "OMAA,AD-ORMID": ["D", "C"],
-      "OMAA,AD-ORSAR": ["D", "W"],
-      "OMAA,AD-PEKEM": ["A", "L"],
-      "OMAA,AD-RETAS": ["A"],
-      "OMAA,AD-RIBOT": ["L"],
-      "OMAA,AD-TANSU": ["A", "L"],
-      "OMAA,AD-TOVOX": ["G", "S"],
-      "OMAA,AD-TUMAK": ["D", "C"],
-      "OMAL-ALPOB": ["H", "D", "C"],
-      "OMAL-GABKO": ["H", "M"],
-      "OMAL-KATIT": ["L"],
-      "OMAL-KUMUN": ["H", "M"],
-      "OMAL-LABRI": ["A"],
-      "OMAL-ORMID": ["H", "D", "C"],
-      "OMAL-PEKEM": ["A", "L"],
-      "OMAL-RETAS": ["A"],
-      "OMAL-RIBOT": ["L"],
-      "OMAL-TANSU": ["A", "L"],
-      "OMAL-TOVOX": ["H", "G", "S"],
-      "OMAL-TUMAK": ["H", "D", "C"],
-      "OMDB,DW,SJ-ALPOB": ["D", "C"],
-      "OMDB,SJ-GABKO": ["R"],
-      "OMDB,DW,SJ-KATIT": ["H", "L"],
-      "OMDB,DW,SJ-KUMUN": [""],
-      "OMDB,DW,SJ-MEMTU": ["E", "A", "L"],
-      "OMDB,DW,SJ-ORMID": ["D", "C"],
-      "OMDB,DW,SJ-ORSAR": ["R"],
-      "OMDB,DW,SJ-PEKEM": ["E", "A", "L"],
-      "OMDB,DW,SJ-RIBOT": ["H", "L"],
-      "OMDB,DW,SJ-TANSU": ["E", "A", "L"],
-      "OMDB,DW,SJ-TARDI": ["E"],
-      "OMDB,DW,SJ-TOSNA*": ["D", "C"],
-      "OMDB,DW,SJ-TOSNA": ["D", "C"],
-      "OMDB,DW,SJ-TUMAK": ["D", "C"],
-      "OMDB,SJ-GOMTA": ["R"],
-      "OMDB,SJ-LALDO": ["R"],
-      "OMDW-GABKO": ["H", "R"],
-      "OMDW-GOMTA": ["R"],
-      "OMDW-LALDO": ["R"],
-      "OMFJ-ALPOB": ["R", "H", "D", "C"],
-      "OMFJ-GABKO": ["R"],
-      "OMFJ-KATIT": ["H", "L"],
-      "OMFJ-ORMID": ["R", "H", "D", "C"],
-      "OMFJ-PEKEM": ["E", "A", "L"],
-      "OMFJ-RIBOT": ["H", "L"],
-      "OMFJ-TANSU": ["E", "A", "L"],
-      "OMFJ-TONVO": ["R"],
-      "OMFJ-TOSNA": ["R", "H", "D", "C"],
-      "OMFJ-TUMAK": ["H", "D", "C"],
-      "OMRK-ALPOB": ["R", "H", "D", "C"],
-      "OMRK-GABKO": ["R"],
-      "OMRK-GOMTA": ["R"],
-      "OMRK-KATIT": ["H", "L"],
-      "OMRK-LALDO": ["R"],
-      "OMRK-MEMTU": ["E", "A", "L"],
-      "OMRK-ORMID": ["H", "D", "C"],
-      "OMRK-PEKEM": ["H", "L"],
-      "OMRK-RIBOT": ["H", "L"],
-      "OMRK-TANSU": ["E", "A", "L"],
-      "OMRK-TARDI": ["E"],
-      "OMRK-TOSNA": ["H", "D", "C"],
-      "OMRK-TUMAK": ["H", "D", "C"],
-      "ASTOG-OMDB": ["C", "W"],
-      "ASTOG-OMDW": ["C", "W"],
-      "ASTOG-OMFJ": ["C", "W"],
-      "ASTOG-OMRK": ["C", "W"],
-      "ASTOG-OMSJ": ["C", "W"],
-      "BUNDU-OMAA": ["S", "G"],
-      "BUNDU-OMAD": ["S", "G"],
-      "BUNDU-OMAL": ["S", "G"],
-      "ITRAX-OMAA,AD": ["A"],
-      "ITRAX-OMAL": ["A"],
-      "KATIT-OMAA,AD": ["L"],
-      "KATIT-OMAL": ["L"],
-      "KATIT-OMDB": ["L", "H"],
-      "KATIT-OMDW": ["L"],
-      "KATIT-OMRK": ["L", "H"],
-      "KATIT-OMSJ": ["L", "H"],
-      "KUPRO-OMAA": ["S", "G"],
-      "KUPRO-OMAD": ["S", "G"],
-      "KUPRO-OMAL": ["S", "G"],
-      "MENSA-OMFJ": ["E", "Y"],
-      "MENSA-OMRK": ["E", "Y"],
-      "MENSA-OMSJ": ["E", "Y"],
-      "MUSAP-OMDB": ["E", "Y"],
-      "MUSAP-OMDW": ["E", "Y"],
-      "MUSAP-OMFJ": ["E", "Y"],
-      "MUSAP-OMRK": ["E", "Y"],
-      "MUSAP-OMSJ": ["E", "Y"],
-      "NALPO-OMDB": ["N", "W"],
-      "NALPO-OMDW": ["N", "W"],
-      "NALPO-OMDW*": ["N", "D"],
-      "NALPO-OMFJ": ["N", "H", "R"],
-      "NALPO-OMRK": ["N", "W"],
-      "NALPO-OMSJ": ["N", "W"],
-      "OBNET-OMDB": ["N", "W"],
-      "OBNET-OMDW": ["N", "W"],
-      "OBNET-OMDW*": ["N", "D"],
-      "OBNET-OMFJ": ["N", "H", "R"],
-      "OBNET-OMRK": ["N", "W"],
-      "OBNET-OMSJ": ["N", "W"],
-      "ORSAR-OMAA": ["N", "D"],
-      "ORSAR-OMAA,AD*": ["N", "D"],
-      "ORSAR-OMAA,AD": ["N", "H"],
-      "ORSAR-OMAD": ["N", "D"],
-      "ORSAR-OMAL": ["N", "H"],
-      "ORSAR-OMDB": ["N", "W"],
-      "ORSAR-OMDW*": ["N", "D"],
-      "ORSAR-OMDW": ["N", "W"],
-      "ORSAR-OMFJ": ["N", "H", "R"],
-      "ORSAR-OMRK": ["N", "W"],
-      "ORSAR-OMSJ": ["N", "W"],
-      "OVONA-OMAA": ["S", "G"],
-      "OVONA-OMAD": ["S", "G"],
-      "OVONA-OMAL": ["S", "G", "H"],
-      "PASOV-OMDB": ["E", "Y"],
-      "PASOV-OMDW": ["E", "Y"],
-      "PASOV-OMRK": ["E", "Y"],
-      "PASOV-OMSJ": ["E", "Y"],
-      "PATAT-OMAA,AD": ["M", "H"],
-      "PATAT-OMAL": ["M", "H"],
-      "PATAT-OMDB,SJ,DW": ["R"],
-      "PATAT-OMFJ": ["R"],
-      "PATAT-OMRK": ["R"],
-      "PEKEM-OMAA,AD": ["L", "A"],
-      "PEKEM-OMAL": ["L", "A"],
-      "PEKEM-OMDB": ["L", "A", "E", "Y"],
-      "PEKEM-OMDW": ["L", "A", "E", "Y"],
-      "PEKEM-OMFJ": ["L", "A", "E", "Y"],
-      "PEKEM-OMRK": ["L", "A", "E", "Y"],
-      "PEKEM-OMSJ": ["L", "A", "E", "Y"],
-      "RIBOT-OMAA,AD": ["L"],
-      "RIBOT-OMAL": ["L"],
-      "RIBOT-OMDB,SJ": ["L", "H"],
-      "RIBOT-OMDW": ["L"],
-      "RIBOT-OMRK": ["L", "H"],
-      "SODEX-OMAA,AD": ["A"],
-      "SODEX-OMAL": ["A"],
-      "SOLUD-OMDB": ["E", "Y"],
-      "TANSU-OMAA,AD": ["L", "A"],
-      "TANSU-OMAL": ["L", "A"],
-      "TANSU-OMDB": ["L", "A", "E", "Y"],
-      "TANSU-OMDW": ["L", "A", "E"],
-      "TANSU-OMFJ": ["L", "A", "E", "Y"],
-      "TANSU-OMRK": ["L", "A", "E", "Y"],
-      "TANSU-OMSJ": ["L", "A", "E", "Y"],
-      "TAPRA-OMDB": ["E", "Y"],
-      "TAPRA-OMDW": ["E", "Y"],
-      "TOSNA-OMAA": ["S", "G"],
-      "TOSNA-OMAD": ["S", "G"],
-      "TOSNA-OMAL": ["S", "G", "H"],
-      "VAXAS-OMDB": ["E", "Y"],
-      "VAXAS-OMDW": ["E", "Y"],
-      "VAXAS-OMRK": ["E", "Y"],
-      "VAXAS-OMSJ": ["E", "Y"],
-      "BUNDU-LABRI-FRA": ["S", "B"],
-      "BUNDU-LABRI*-FRA": ["S", "B"],
-      "BUNDU-OMAA-FRA": ["S", "G"],
-      "BUNDU-OMAD-FRA": ["S", "G"],
-      "BUNDU-OMAL-FRA": ["S", "G"],
-      "BUNDU-RETAS-FRA": ["S", "B"],
-      "BUNDU-TONVO-FRA": ["S", "M"],
-      "BUNDU-TONVO*-FRA": ["S", "M"],
-      "GISMO-ALPOB-FRA": ["M", "C"],
-      "GISMO-GABKO-FRA": ["M"],
-      "GISMO-KUMUN-FRA": ["M"],
-      "GISMO-ORMID-FRA": ["M", "C"],
-      "GISMO-TUMAK-FRA": ["M", "C"],
-      "ITRAX-ALPOB-FRA": ["B", "S", "C"],
-      "ITRAX-ORMID-FRA": ["B", "S", "C"],
-      "ITRAX-TOVOX*-FRA": ["B", "S"],
-      "ITRAX-TOVOX-FRA": ["B", "S"],
-      "ITRAX-TUMAK-FRA": ["B", "S", "C"],
-      "KUPRO-LALDO*-FRA": ["S", "M"],
-      "KUPRO-LALDO-FRA": ["S", "M"],
-      "KUPRO-TONVO-FRA": ["S", "M"],
-      "KUPRO-TONVO*-FRA": ["S", "M"],
-      "LALDO-ALPOB-FRA": ["M", "C"],
-      "LALDO-ORMID-FRA": ["M", "C"],
-      "LALDO-TOSNA-FRA": ["M", "C"],
-      "LALDO-TUMAK-FRA": ["M", "C"],
-      "MENSA-ALPOB-FRA": ["M", "C"],
-      "MENSA-ORMID-FRA": ["M", "C"],
-      "MENSA-TOSNA-FRA": ["M", "C"],
-      "MENSA-TUMAK-FRA": ["M", "C"],
-      "NALPO-LALDO-FRA": ["N", "M"],
-      "NALPO-TARDI-FRA": ["N", "M"],
-      "NALPO-TARDI*-FRA": ["N", "M"],
-      "NALPO-TONVO-FRA": ["N", "M"],
-      "OBNET-LALDO-FRA": ["N", "M"],
-      "OBNET-TARDI-FRA": ["N", "M"],
-      "OBNET-TARDI*-FRA": ["N", "M"],
-      "OBNET-TONVO-FRA": ["N", "M"],
-      "ORSAR-LALDO-FRA": ["M"],
-      "ORSAR-TARDI-FRA": ["M"],
-      "ORSAR-TARDI*-FRA": ["M"],
-      "ORSAR-TONVO-FRA": ["M"],
-      "OVONA-LABRI-FRA": ["S", "B"],
-      "OVONA-RETAS-FRA": ["S", "B"],
-      "PATAT-ALPOB-FRA": ["M", "C"],
-      "PATAT-OMAA ,AD-FRA": ["M", "H"],
-      "PATAT-OMAL-FRA": ["M", "H"],
-      "PATAT-ORMID-FRA": ["M", "C"],
-      "PATAT-TARDI-FRA": ["M"],
-      "PATAT-TARDI*-FRA": ["M"],
-      "PATAT-TOSNA-FRA": ["M", "C"],
-      "PATAT-TUMAK-FRA": ["M", "C"],
-      "SIR-LALDO-FRA": ["N", "M"],
-      "SIR-TARDI-FRA": ["N", "M"],
-      "SIR-TARDI*-FRA": ["N", "M"],
-      "SIR-TONVO-FRA": ["N", "M"],
-      "SODEX-ALPOB-FRA": ["B", "S", "C"],
-      "SODEX-ORMID-FRA": ["B", "S", "C"],
-      "SODEX-TOVOX-FRA": ["B", "S"],
-      "SODEX-TOVOX*-FRA": ["B", "S"],
-      "SODEX-TUMAK-FRA": ["B", "S", "C"],
-      "TOSNA-LABRI-FRA": ["S", "B"],
-      "TOSNA-RETAS-FRA": ["S", "B"],
-    };
+      const routeSectors = {
+        "BUNDU-LABRI": ["S", "B"],
+        "BUNDU-RETAS": ["S", "B"],
+        "BUNDU-TONVO": ["S", "M"],
+        "ITRAX-ALPOB": ["B", "S", "C"],
+        "ITRAX-ALPOB": ["B", "S", "C"],
+        "ITRAX-ORMID*": ["B", "S", "C"],
+        "ITRAX-ORMID": ["B", "S", "C"],
+        "ITRAX-TOVOX": ["B", "S", "C"],
+        "ITRAX-TUMAK": ["B", "S", "C"],
+        "ITRAX-TUMAK*": ["B", "S", "C"],
+        "KUPRO-GABKO": ["S", "M"],
+        "KUPRO-LALDO*": ["S", "G", "D", "H", "R"],
+        "KUPRO-LALDO": ["S", "M"],
+        "KUPRO-TONVO": ["S", "M"],
+        "LALDO-ALPOB": ["M", "C"],
+        "LALDO-ORMID": ["M", "C"],
+        "LALDO-TOSNA": ["M", "C"],
+        "LALDO-TUMAK": ["M", "C"],
+        "LUDID-PEKEM": ["L"],
+        "LUDID-TANSU": ["L"],
+        "MENSA-ALPOB": ["M", "C"],
+        "MENSA-KUMUN": ["M"],
+        "MENSA-ORMID": ["M", "C"],
+        "MENSA-TOSNA": ["M", "C"],
+        "MENSA-TUMAK": ["M", "C"],
+        "MUSAP-KUMUN": ["M"],
+        "NALPO-GABKO": ["N", "M"],
+        "NALPO-LALDO": ["N", "M"],
+        "NALPO-TARDI": ["N", "M"],
+        "NALPO-TONVO": ["N", "M"],
+        "OBNET-GABKO": ["N", "M"],
+        "OBNET-LALDO": ["N", "M"],
+        "OBNET-TARDI": ["N", "M"],
+        "OBNET-TONVO": ["N", "M"],
+        "ORSAR-LALDO": ["N", "M"],
+        "ORSAR-TARDI": ["N", "M"],
+        "ORSAR-TONVO": ["N", "M"],
+        "OVONA-LABRI": ["S", "B"],
+        "OVONA-RETAS": ["S", "B"],
+        "PATAT-ALPOB": ["M", "C"],
+        "PATAT-ORMID": ["M", "C"],
+        "PATAT-TARDI": ["M"],
+        "PATAT-TOSNA": ["M", "C"],
+        "PATAT-TUMAK": ["M", "C"],
+        "PEKEM-GABKO": ["L", "B", "M"],
+        "SIR-LALDO": ["N", "M"],
+        "SIR-TARDI": ["N", "M"],
+        "SIR-TONVO": ["N", "M"],
+        "SODEX-ALPOB": ["B", "S", "C"],
+        "SODEX-ORMID": ["B", "S", "C"],
+        "SODEX-TOVOX": ["B", "S"],
+        "SODEX-TUMAK": ["B", "S", "C"],
+        "SOLUD-ALPOB": ["M", "C"],
+        "SOLUD-GABKO": ["M"],
+        "SOLUD-KUMUN": ["M"],
+        "SOLUD-ORMID": ["M", "C"],
+        "SOLUD-TUMAK": ["M", "C"],
+        "TANSU-GABKO": ["L", "B", "M"],
+        "TOSNA-LABRI": ["S", "B"],
+        "TOSNA-RETAS": ["S", "B"],
+        "OMAA,AD-ALPOB": ["D", "C"],
+        "OMAA,AD-GABKO": ["H", "M"],
+        "OMAA,AD-KATIT": ["H", "L"],
+        "OMAA,AD-KUMUN": ["H", "M"],
+        "OMAA,AD-LABRI": ["A"],
+        "OMAA,AD-ORMID": ["D", "C"],
+        "OMAA,AD-ORSAR": ["D", "W"],
+        "OMAA,AD-PEKEM": ["A", "L"],
+        "OMAA,AD-RETAS": ["A"],
+        "OMAA,AD-RIBOT": ["L"],
+        "OMAA,AD-TANSU": ["A", "L"],
+        "OMAA,AD-TOVOX": ["G", "S"],
+        "OMAA,AD-TUMAK": ["D", "C"],
+        "OMAL-ALPOB": ["H", "D", "C"],
+        "OMAL-GABKO": ["H", "M"],
+        "OMAL-KATIT": ["L"],
+        "OMAL-KUMUN": ["H", "M"],
+        "OMAL-LABRI": ["A"],
+        "OMAL-ORMID": ["H", "D", "C"],
+        "OMAL-PEKEM": ["A", "L"],
+        "OMAL-RETAS": ["A"],
+        "OMAL-RIBOT": ["L"],
+        "OMAL-TANSU": ["A", "L"],
+        "OMAL-TOVOX": ["H", "G", "S"],
+        "OMAL-TUMAK": ["H", "D", "C"],
+        "OMDB,DW,SJ-ALPOB": ["D", "C"],
+        "OMDB,SJ-GABKO": ["R"],
+        "OMDB,DW,SJ-KATIT": ["H", "L"],
+        "OMDB,DW,SJ-KUMUN": [""],
+        "OMDB,DW,SJ-MEMTU": ["E", "A", "L"],
+        "OMDB,DW,SJ-ORMID": ["D", "C"],
+        "OMDB,DW,SJ-ORSAR": ["R"],
+        "OMDB,DW,SJ-PEKEM": ["E", "A", "L"],
+        "OMDB,DW,SJ-RIBOT": ["H", "L"],
+        "OMDB,DW,SJ-TANSU": ["E", "A", "L"],
+        "OMDB,DW,SJ-TARDI": ["E"],
+        "OMDB,DW,SJ-TOSNA*": ["D", "C"],
+        "OMDB,DW,SJ-TOSNA": ["D", "C"],
+        "OMDB,DW,SJ-TUMAK": ["D", "C"],
+        "OMDB,SJ-GOMTA": ["R"],
+        "OMDB,SJ-LALDO": ["R"],
+        "OMDW-GABKO": ["H", "R"],
+        "OMDW-GOMTA": ["R"],
+        "OMDW-LALDO": ["R"],
+        "OMFJ-ALPOB": ["R", "H", "D", "C"],
+        "OMFJ-GABKO": ["R"],
+        "OMFJ-KATIT": ["H", "L"],
+        "OMFJ-ORMID": ["R", "H", "D", "C"],
+        "OMFJ-PEKEM": ["E", "A", "L"],
+        "OMFJ-RIBOT": ["H", "L"],
+        "OMFJ-TANSU": ["E", "A", "L"],
+        "OMFJ-TONVO": ["R"],
+        "OMFJ-TOSNA": ["R", "H", "D", "C"],
+        "OMFJ-TUMAK": ["H", "D", "C"],
+        "OMRK-ALPOB": ["R", "H", "D", "C"],
+        "OMRK-GABKO": ["R"],
+        "OMRK-GOMTA": ["R"],
+        "OMRK-KATIT": ["H", "L"],
+        "OMRK-LALDO": ["R"],
+        "OMRK-MEMTU": ["E", "A", "L"],
+        "OMRK-ORMID": ["H", "D", "C"],
+        "OMRK-PEKEM": ["H", "L"],
+        "OMRK-RIBOT": ["H", "L"],
+        "OMRK-TANSU": ["E", "A", "L"],
+        "OMRK-TARDI": ["E"],
+        "OMRK-TOSNA": ["H", "D", "C"],
+        "OMRK-TUMAK": ["H", "D", "C"],
+        "ASTOG-OMDB": ["C", "W"],
+        "ASTOG-OMDW": ["C", "W"],
+        "ASTOG-OMFJ": ["C", "W"],
+        "ASTOG-OMRK": ["C", "W"],
+        "ASTOG-OMSJ": ["C", "W"],
+        "BUNDU-OMAA": ["S", "G"],
+        "BUNDU-OMAD": ["S", "G"],
+        "BUNDU-OMAL": ["S", "G"],
+        "ITRAX-OMAA,AD": ["A"],
+        "ITRAX-OMAL": ["A"],
+        "KATIT-OMAA,AD": ["L"],
+        "KATIT-OMAL": ["L"],
+        "KATIT-OMDB": ["L", "H"],
+        "KATIT-OMDW": ["L"],
+        "KATIT-OMRK": ["L", "H"],
+        "KATIT-OMSJ": ["L", "H"],
+        "KUPRO-OMAA": ["S", "G"],
+        "KUPRO-OMAD": ["S", "G"],
+        "KUPRO-OMAL": ["S", "G"],
+        "MENSA-OMFJ": ["E", "Y"],
+        "MENSA-OMRK": ["E", "Y"],
+        "MENSA-OMSJ": ["E", "Y"],
+        "MUSAP-OMDB": ["E", "Y"],
+        "MUSAP-OMDW": ["E", "Y"],
+        "MUSAP-OMFJ": ["E", "Y"],
+        "MUSAP-OMRK": ["E", "Y"],
+        "MUSAP-OMSJ": ["E", "Y"],
+        "NALPO-OMDB": ["N", "W"],
+        "NALPO-OMDW": ["N", "W"],
+        "NALPO-OMDW*": ["N", "D"],
+        "NALPO-OMFJ": ["N", "H", "R"],
+        "NALPO-OMRK": ["N", "W"],
+        "NALPO-OMSJ": ["N", "W"],
+        "OBNET-OMDB": ["N", "W"],
+        "OBNET-OMDW": ["N", "W"],
+        "OBNET-OMDW*": ["N", "D"],
+        "OBNET-OMFJ": ["N", "H", "R"],
+        "OBNET-OMRK": ["N", "W"],
+        "OBNET-OMSJ": ["N", "W"],
+        "ORSAR-OMAA": ["N", "D"],
+        "ORSAR-OMAA,AD*": ["N", "D"],
+        "ORSAR-OMAA,AD": ["N", "H"],
+        "ORSAR-OMAD": ["N", "D"],
+        "ORSAR-OMAL": ["N", "H"],
+        "ORSAR-OMDB": ["N", "W"],
+        "ORSAR-OMDW*": ["N", "D"],
+        "ORSAR-OMDW": ["N", "W"],
+        "ORSAR-OMFJ": ["N", "H", "R"],
+        "ORSAR-OMRK": ["N", "W"],
+        "ORSAR-OMSJ": ["N", "W"],
+        "OVONA-OMAA": ["S", "G"],
+        "OVONA-OMAD": ["S", "G"],
+        "OVONA-OMAL": ["S", "G", "H"],
+        "PASOV-OMDB": ["E", "Y"],
+        "PASOV-OMDW": ["E", "Y"],
+        "PASOV-OMRK": ["E", "Y"],
+        "PASOV-OMSJ": ["E", "Y"],
+        "PATAT-OMAA,AD": ["M", "H"],
+        "PATAT-OMAL": ["M", "H"],
+        "PATAT-OMDB,SJ,DW": ["R"],
+        "PATAT-OMFJ": ["R"],
+        "PATAT-OMRK": ["R"],
+        "PEKEM-OMAA,AD": ["L", "A"],
+        "PEKEM-OMAL": ["L", "A"],
+        "PEKEM-OMDB": ["L", "A", "E", "Y"],
+        "PEKEM-OMDW": ["L", "A", "E", "Y"],
+        "PEKEM-OMFJ": ["L", "A", "E", "Y"],
+        "PEKEM-OMRK": ["L", "A", "E", "Y"],
+        "PEKEM-OMSJ": ["L", "A", "E", "Y"],
+        "RIBOT-OMAA,AD": ["L"],
+        "RIBOT-OMAL": ["L"],
+        "RIBOT-OMDB,SJ": ["L", "H"],
+        "RIBOT-OMDW": ["L"],
+        "RIBOT-OMRK": ["L", "H"],
+        "SODEX-OMAA,AD": ["A"],
+        "SODEX-OMAL": ["A"],
+        "SOLUD-OMDB": ["E", "Y"],
+        "TANSU-OMAA,AD": ["L", "A"],
+        "TANSU-OMAL": ["L", "A"],
+        "TANSU-OMDB": ["L", "A", "E", "Y"],
+        "TANSU-OMDW": ["L", "A", "E"],
+        "TANSU-OMFJ": ["L", "A", "E", "Y"],
+        "TANSU-OMRK": ["L", "A", "E", "Y"],
+        "TANSU-OMSJ": ["L", "A", "E", "Y"],
+        "TAPRA-OMDB": ["E", "Y"],
+        "TAPRA-OMDW": ["E", "Y"],
+        "TOSNA-OMAA": ["S", "G"],
+        "TOSNA-OMAD": ["S", "G"],
+        "TOSNA-OMAL": ["S", "G", "H"],
+        "VAXAS-OMDB": ["E", "Y"],
+        "VAXAS-OMDW": ["E", "Y"],
+        "VAXAS-OMRK": ["E", "Y"],
+        "VAXAS-OMSJ": ["E", "Y"],
+        "BUNDU-LABRI-FRA": ["S", "B"],
+        "BUNDU-LABRI*-FRA": ["S", "B"],
+        "BUNDU-OMAA-FRA": ["S", "G"],
+        "BUNDU-OMAD-FRA": ["S", "G"],
+        "BUNDU-OMAL-FRA": ["S", "G"],
+        "BUNDU-RETAS-FRA": ["S", "B"],
+        "BUNDU-TONVO-FRA": ["S", "M"],
+        "BUNDU-TONVO*-FRA": ["S", "M"],
+        "GISMO-ALPOB-FRA": ["M", "C"],
+        "GISMO-GABKO-FRA": ["M"],
+        "GISMO-KUMUN-FRA": ["M"],
+        "GISMO-ORMID-FRA": ["M", "C"],
+        "GISMO-TUMAK-FRA": ["M", "C"],
+        "ITRAX-ALPOB-FRA": ["B", "S", "C"],
+        "ITRAX-ORMID-FRA": ["B", "S", "C"],
+        "ITRAX-TOVOX*-FRA": ["B", "S"],
+        "ITRAX-TOVOX-FRA": ["B", "S"],
+        "ITRAX-TUMAK-FRA": ["B", "S", "C"],
+        "KUPRO-LALDO*-FRA": ["S", "M"],
+        "KUPRO-LALDO-FRA": ["S", "M"],
+        "KUPRO-TONVO-FRA": ["S", "M"],
+        "KUPRO-TONVO*-FRA": ["S", "M"],
+        "LALDO-ALPOB-FRA": ["M", "C"],
+        "LALDO-ORMID-FRA": ["M", "C"],
+        "LALDO-TOSNA-FRA": ["M", "C"],
+        "LALDO-TUMAK-FRA": ["M", "C"],
+        "MENSA-ALPOB-FRA": ["M", "C"],
+        "MENSA-ORMID-FRA": ["M", "C"],
+        "MENSA-TOSNA-FRA": ["M", "C"],
+        "MENSA-TUMAK-FRA": ["M", "C"],
+        "NALPO-LALDO-FRA": ["N", "M"],
+        "NALPO-TARDI-FRA": ["N", "M"],
+        "NALPO-TARDI*-FRA": ["N", "M"],
+        "NALPO-TONVO-FRA": ["N", "M"],
+        "OBNET-LALDO-FRA": ["N", "M"],
+        "OBNET-TARDI-FRA": ["N", "M"],
+        "OBNET-TARDI*-FRA": ["N", "M"],
+        "OBNET-TONVO-FRA": ["N", "M"],
+        "ORSAR-LALDO-FRA": ["M"],
+        "ORSAR-TARDI-FRA": ["M"],
+        "ORSAR-TARDI*-FRA": ["M"],
+        "ORSAR-TONVO-FRA": ["M"],
+        "OVONA-LABRI-FRA": ["S", "B"],
+        "OVONA-RETAS-FRA": ["S", "B"],
+        "PATAT-ALPOB-FRA": ["M", "C"],
+        "PATAT-OMAA ,AD-FRA": ["M", "H"],
+        "PATAT-OMAL-FRA": ["M", "H"],
+        "PATAT-ORMID-FRA": ["M", "C"],
+        "PATAT-TARDI-FRA": ["M"],
+        "PATAT-TARDI*-FRA": ["M"],
+        "PATAT-TOSNA-FRA": ["M", "C"],
+        "PATAT-TUMAK-FRA": ["M", "C"],
+        "SIR-LALDO-FRA": ["N", "M"],
+        "SIR-TARDI-FRA": ["N", "M"],
+        "SIR-TARDI*-FRA": ["N", "M"],
+        "SIR-TONVO-FRA": ["N", "M"],
+        "SODEX-ALPOB-FRA": ["B", "S", "C"],
+        "SODEX-ORMID-FRA": ["B", "S", "C"],
+        "SODEX-TOVOX-FRA": ["B", "S"],
+        "SODEX-TOVOX*-FRA": ["B", "S"],
+        "SODEX-TUMAK-FRA": ["B", "S", "C"],
+        "TOSNA-LABRI-FRA": ["S", "B"],
+        "TOSNA-RETAS-FRA": ["S", "B"],
+      };
 
-
-//----------
-    const routes = {
-//1.9.3. The following standard routings apply for traffic transiting the FIR below FL 355:
+      //----------
+      const routes = {
+        //1.9.3. The following standard routings apply for traffic transiting the FIR below FL 355:
         "BUNDU-LABRI": ["BUNDU", "B415", "SIXIV", "N318", "LABRI"],
         "BUNDU-RETAS": ["BUNDU", "B415", "RURAL", "N685", "RETAS"],
         "BUNDU-TONVO": ["BUNDU", "B415", "KUGTO", "Q415", "TONVO"],
         "ITRAX-ALPOB": ["ITRAX", "P899", "UMIBU", "N563", "ALPOB"],
-        "ITRAX-ALPOB": ["ITRAX", "P899", "ROVOS", "G462", "UKUVO", "Q563", "IMGUX", "N563", "ALPOB"],
-        "ITRAX-ORMID*": ["ITRAX", "P899", "UMIBU", "N563", "IMGUX", "P699", "ORMID"],
-        "ITRAX-ORMID": ["ITRAX", "P899", "ROVOS", "G462", "UKUVO", "Q563", "IMGUX", "P699", "ORMID"],
+        "ITRAX-ALPOB": [
+          "ITRAX",
+          "P899",
+          "ROVOS",
+          "G462",
+          "UKUVO",
+          "Q563",
+          "IMGUX",
+          "N563",
+          "ALPOB",
+        ],
+        "ITRAX-ORMID*": [
+          "ITRAX",
+          "P899",
+          "UMIBU",
+          "N563",
+          "IMGUX",
+          "P699",
+          "ORMID",
+        ],
+        "ITRAX-ORMID": [
+          "ITRAX",
+          "P899",
+          "ROVOS",
+          "G462",
+          "UKUVO",
+          "Q563",
+          "IMGUX",
+          "P699",
+          "ORMID",
+        ],
         "ITRAX-TOVOX": ["ITRAX", "P899", "TOVOX"],
         "ITRAX-TUMAK": ["ITRAX", "P899", "ROVOS", "G462", "TUMAK"],
-        "ITRAX-TUMAK*": ["ITRAX", "P899", "UMIBU", "N563", "BOSEV", "Q565", "UKUVO", "G462", "TUMAK"],
-        "KUPRO-GABKO": ["KUPRO", "N300", "VEKOV", "M318", "GABKO"],
-        "KUPRO-LALDO*": ["KUPRO", "N300", "VEKOV", "M318", "MITIX", "Q323", "PAVAG", "P307", "NOLSU", "N300", "LALDO"],
+        "ITRAX-TUMAK*": [
+          "ITRAX",
+          "P899",
+          "UMIBU",
+          "N563",
+          "BOSEV",
+          "Q565",
+          "UKUVO",
+          "G462",
+          "TUMAK",
+        ],
+        "KUPRO-GABKO": ["KUPRO", "N300", "VEKOV", "M318", "GABKO"],
+        "KUPRO-LALDO*": [
+          "KUPRO",
+          "N300",
+          "VEKOV",
+          "M318",
+          "MITIX",
+          "Q323",
+          "PAVAG",
+          "P307",
+          "NOLSU",
+          "N300",
+          "LALDO",
+        ],
         "KUPRO-LALDO": ["KUPRO", "N300", "LALDO"],
-        "KUPRO-TONVO": ["KUPRO", "N300", "NOLSU", "P307", "TONVO"],
-        "LALDO-ALPOB": ["LALDO", "M677", "TUKSI", "P699", "IVOXI", "N571", "ALPOB"],
+        "KUPRO-TONVO": ["KUPRO", "N300", "NOLSU", "P307", "TONVO"],
+        "LALDO-ALPOB": [
+          "LALDO",
+          "M677",
+          "TUKSI",
+          "P699",
+          "IVOXI",
+          "N571",
+          "ALPOB",
+        ],
         "LALDO-ORMID": ["LALDO", "M677", "TUKSI", "P699", "ORMID"],
-        "LALDO-TOSNA": ["LALDO", "M677", "TUKSI", "P699", "EGTAG", "Q576", "RORON", "M430", "TOSNA"],
-        "LALDO-TUMAK": ["LALDO", "M677", "TUKSI", "P699", "IVOXI", "M557", "TUMAK"],
+        "LALDO-TOSNA": [
+          "LALDO",
+          "M677",
+          "TUKSI",
+          "P699",
+          "EGTAG",
+          "Q576",
+          "RORON",
+          "M430",
+          "TOSNA",
+        ],
+        "LALDO-TUMAK": [
+          "LALDO",
+          "M677",
+          "TUKSI",
+          "P699",
+          "IVOXI",
+          "M557",
+          "TUMAK",
+        ],
         "LUDID-PEKEM": ["LUDID", "M628-", "PEKEM"],
         "LUDID-TANSU": ["LUDID", "M628-", "RIGIL", "G783", "TANSU"],
         "MENSA-ALPOB": ["MENSA", "N571", "ALPOB"],
         "MENSA-KUMUN": ["MENSA", "N571", "RUKOR", "P574", "KUMUN"],
         "MENSA-ORMID": ["MENSA", "N571", "IVOXI", "P699", "ORMID"],
-        "MENSA-TOSNA": ["MENSA", "N571", "IVOXI", "P699", "EGTAG", "Q576", "RORON", "M430", "TOSNA"],
+        "MENSA-TOSNA": [
+          "MENSA",
+          "N571",
+          "IVOXI",
+          "P699",
+          "EGTAG",
+          "Q576",
+          "RORON",
+          "M430",
+          "TOSNA",
+        ],
         "MENSA-TUMAK": ["MENSA", "N571", "IVOXI", "M557", "TUMAK"],
         "MUSAP-KUMUN": ["MUSAP", "R401", "NORGA", "P574", "KUMUN"],
-        "NALPO-GABKO": ["NALPO", "P559", "AMBOV", "Q322", "LOVEM", "M318", "GABKO"],
-        "NALPO-LALDO": ["NALPO", "P559", "AMBOV", "Q322", "LOVEM", "M677", "LALDO"],
-        "NALPO-TARDI": ["NALPO", "P559", "AMBOV", "Q322", "LOVEM", "L223", "TARDI"],
-        "NALPO-TONVO": ["NALPO", "P559", "AMBOV", "Q322", "LOVEM", "Q572", "SERSA", "P307", "TONVO"],
+        "NALPO-GABKO": [
+          "NALPO",
+          "P559",
+          "AMBOV",
+          "Q322",
+          "LOVEM",
+          "M318",
+          "GABKO",
+        ],
+        "NALPO-LALDO": [
+          "NALPO",
+          "P559",
+          "AMBOV",
+          "Q322",
+          "LOVEM",
+          "M677",
+          "LALDO",
+        ],
+        "NALPO-TARDI": [
+          "NALPO",
+          "P559",
+          "AMBOV",
+          "Q322",
+          "LOVEM",
+          "L223",
+          "TARDI",
+        ],
+        "NALPO-TONVO": [
+          "NALPO",
+          "P559",
+          "AMBOV",
+          "Q322",
+          "LOVEM",
+          "Q572",
+          "SERSA",
+          "P307",
+          "TONVO",
+        ],
         "OBNET-GABKO": ["OBNET", "M677", "LOVEM", "M318", "GABKO"],
         "OBNET-LALDO": ["OBNET", "M677", "LALDO"],
         "OBNET-TARDI": ["OBNET", "M677", "LOVEM", "L223", "TARDI"],
-        "OBNET-TONVO": ["OBNET", "M677", "LOVEM", "Q572", "SERSA", "P307", "TONVO"],
+        "OBNET-TONVO": [
+          "OBNET",
+          "M677",
+          "LOVEM",
+          "Q572",
+          "SERSA",
+          "P307",
+          "TONVO",
+        ],
         "ORSAR-LALDO": ["ORSAR", "R784", "KUSEN", "M677", "LALDO"],
         "ORSAR-TARDI": ["ORSAR", "R784", "TATLA", "L223", "TARDI"],
-        "ORSAR-TONVO": ["ORSAR", "R784", "TOVIV", "Q321", "NOLSU", "P307", "TONVO"],
+        "ORSAR-TONVO": [
+          "ORSAR",
+          "R784",
+          "TOVIV",
+          "Q321",
+          "NOLSU",
+          "P307",
+          "TONVO",
+        ],
         "OVONA-LABRI": ["OVONA", "N318", "LABRI"],
         "OVONA-RETAS": ["OVONA", "N318", "KAPUM", "N685", "RETAS"],
         "PATAT-ALPOB": ["PATAT", "L519", "IVOXI", "N571", "ALPOB"],
         "PATAT-ORMID": ["PATAT", "L519", "IVOXI", "P699", "ORMID"],
-        "PATAT-TARDI": ["PATAT", "L519", "EGPEP", "L313", "KIPOK","L223","TARDI"],
-        "PATAT-TOSNA": ["PATAT", "L519", "IVOXI", "P699", "EGTAG", "Q576", "RORON", "M430", "TOSNA"],
+        "PATAT-TARDI": [
+          "PATAT",
+          "L519",
+          "EGPEP",
+          "L313",
+          "KIPOK",
+          "L223",
+          "TARDI",
+        ],
+        "PATAT-TOSNA": [
+          "PATAT",
+          "L519",
+          "IVOXI",
+          "P699",
+          "EGTAG",
+          "Q576",
+          "RORON",
+          "M430",
+          "TOSNA",
+        ],
         "PATAT-TUMAK": ["PATAT", "L519", "IVOXI", "M557", "TUMAK"],
-        "PEKEM-GABKO": ["PEKEM", "M628", "RIGIL", "G783", "ASPED", "Q308", "PEDOG", "R401", "GABKO"],
+        "PEKEM-GABKO": [
+          "PEKEM",
+          "M628",
+          "RIGIL",
+          "G783",
+          "ASPED",
+          "Q308",
+          "PEDOG",
+          "R401",
+          "GABKO",
+        ],
         "SIR-LALDO": ["SIR", "L223", "TATLA", "R784", "KUSEN", "M677", "LALDO"],
         "SIR-TARDI": ["SIR", "L223", "TARDI"],
-        "SIR-TONVO": ["SIR", "L223", "TATLA", "R784", "TOVIV", "Q321", "NOLSU", "P307", "TONVO"],
+        "SIR-TONVO": [
+          "SIR",
+          "L223",
+          "TATLA",
+          "R784",
+          "TOVIV",
+          "Q321",
+          "NOLSU",
+          "P307",
+          "TONVO",
+        ],
         "SODEX-ALPOB": ["SODEX", "N563", "ALPOB"],
         "SODEX-ORMID": ["SODEX", "N563", "IMGUX", "P699", "ORMID"],
         "SODEX-TOVOX": ["SODEX", "N563", "UMIBU", "P899", "TOVOX"],
-        "SODEX-TUMAK": ["SODEX", "N563", "BOSEV", "Q565", "UKUVO", "G462", "TUMAK"],
+        "SODEX-TUMAK": [
+          "SODEX",
+          "N563",
+          "BOSEV",
+          "Q565",
+          "UKUVO",
+          "G462",
+          "TUMAK",
+        ],
         "SOLUD-ALPOB": ["SOLUD", "P574", "RUKOR", "N571", "ALPOB"],
         "SOLUD-GABKO": ["SOLUD", "P574", "NORGA", "R401", "GABKO"],
         "SOLUD-KUMUN": ["SOLUD", "P574", "KUMUN"],
-        "SOLUD-ORMID": ["SOLUD", "P574", "RUKOR", "N571", "IVOXI", "P699", "ORMID"],
-        "SOLUD-TUMAK": ["SOLUD", "P574", "RUKOR", "N571", "IVOXI", "M557", "TUMAK"],
-        "TANSU-GABKO": ["TANSU", "G783", "ASPED", "Q308", "PEDOG", "R401", "GABKO"],
+        "SOLUD-ORMID": [
+          "SOLUD",
+          "P574",
+          "RUKOR",
+          "N571",
+          "IVOXI",
+          "P699",
+          "ORMID",
+        ],
+        "SOLUD-TUMAK": [
+          "SOLUD",
+          "P574",
+          "RUKOR",
+          "N571",
+          "IVOXI",
+          "M557",
+          "TUMAK",
+        ],
+        "TANSU-GABKO": [
+          "TANSU",
+          "G783",
+          "ASPED",
+          "Q308",
+          "PEDOG",
+          "R401",
+          "GABKO",
+        ],
         "TOSNA-LABRI": ["TOSNA", "N685", "KAPUM", "N318", "LABRI"],
-        "TOSNA-RETAS": ["TOSNA", "N685", "UMEVU", "Q415", "KAXOB", "N300", "GIDOB", "N685", "RETAS"],
+        "TOSNA-RETAS": [
+          "TOSNA",
+          "N685",
+          "UMEVU",
+          "Q415",
+          "KAXOB",
+          "N300",
+          "GIDOB",
+          "N685",
+          "RETAS",
+        ],
 
-//1.9.4. The following standard routings apply for traffic departing UAE airports:
+        //1.9.4. The following standard routings apply for traffic departing UAE airports:
         "OMAA,AD-ALPOB": ["BOSEV", "N563", "ALPOB"],
         "OMAA,AD-GABKO": ["TULON", "M318", "GABKO"],
         "OMAA,AD-KATIT": ["ATUDO", "M318", "KATIT"],
         "OMAA,AD-KUMUN": ["TULON", "M318", "TOVIV", "P574", "KUMUN"],
         "OMAA,AD-LABRI": ["KANIP", "N318", "LABRI"],
         "OMAA,AD-ORMID": ["BOSEV", "N563", "IMGUX", "P699", "ORMID"],
-        "OMAA,AD-ORSAR": ["DAXIB", "Q563", "UKUVO", "DCT", "KIVUS", "DCT", "LUDAM", "DCT", "ORSAR"],
-        "OMAA,AD-PEKEM": ["ORNEL", "T560", "ELUDA", "G783", "RIGIL", "M628", "PEKEM"],
+        "OMAA,AD-ORSAR": [
+          "DAXIB",
+          "Q563",
+          "UKUVO",
+          "DCT",
+          "KIVUS",
+          "DCT",
+          "LUDAM",
+          "DCT",
+          "ORSAR",
+        ],
+        "OMAA,AD-PEKEM": [
+          "ORNEL",
+          "T560",
+          "ELUDA",
+          "G783",
+          "RIGIL",
+          "M628",
+          "PEKEM",
+        ],
         "OMAA,AD-RETAS": ["ORNEL", "N685", "RETAS"],
         "OMAA,AD-RIBOT": ["ATUDO", "M318", "GOLGU", "M550", "RIBOT"],
         "OMAA,AD-TANSU": ["ORNEL", "T560", "ELUDA", "G783", "TANSU"],
         "OMAA,AD-TOVOX": ["MEKRI", "P899", "TOVOX"],
         "OMAA,AD-TUMAK": ["DAXIB", "Q563", "UKUVO", "G462", "TUMAK"],
         "OMAL-ALPOB": ["ROVOS", "DCT", "ADV", "DCT", "BOSEV", "N563", "ALPOB"],
-        "OMAL-GABKO": ["ROVOS", "G462", "ULODA", "DCT", "TULON", "M318", "GABKO"],
-        "OMAL-KATIT": ["ROVOS", "DCT", "ADV", "DCT", "VUXOD", "L519", "ATUDO", "M318", "KATIT"],
-        "OMAL-KUMUN": ["ROVOS", "G462", "ULODA", "DCT", "TULON", "M318", "TOVIV", "P574", "KUMUN"],
+        "OMAL-GABKO": [
+          "ROVOS",
+          "G462",
+          "ULODA",
+          "DCT",
+          "TULON",
+          "M318",
+          "GABKO",
+        ],
+        "OMAL-KATIT": [
+          "ROVOS",
+          "DCT",
+          "ADV",
+          "DCT",
+          "VUXOD",
+          "L519",
+          "ATUDO",
+          "M318",
+          "KATIT",
+        ],
+        "OMAL-KUMUN": [
+          "ROVOS",
+          "G462",
+          "ULODA",
+          "DCT",
+          "TULON",
+          "M318",
+          "TOVIV",
+          "P574",
+          "KUMUN",
+        ],
         "OMAL-LABRI": ["LABRI"],
-        "OMAL-ORMID": ["ROVOS", "DCT", "ADV", "DCT", "BOSEV", "N563", "IMGUX", "P699", "ORMID"],
+        "OMAL-ORMID": [
+          "ROVOS",
+          "DCT",
+          "ADV",
+          "DCT",
+          "BOSEV",
+          "N563",
+          "IMGUX",
+          "P699",
+          "ORMID",
+        ],
         "OMAL-PEKEM": ["DCT", "ELUDA", "G783", "RIGIL", "M628", "PEKEM"],
         "OMAL-RETAS": ["RETAS"],
-        "OMAL-RIBOT": ["ROVOS", "DCT", "ADV", "DCT", "VUXOD", "L519", "ATUDO", "M318", "GOLGU", "M550", "RIBOT"],
+        "OMAL-RIBOT": [
+          "ROVOS",
+          "DCT",
+          "ADV",
+          "DCT",
+          "VUXOD",
+          "L519",
+          "ATUDO",
+          "M318",
+          "GOLGU",
+          "M550",
+          "RIBOT",
+        ],
         "OMAL-TANSU": ["DCT", "ELUDA", "G783", "TANSU"],
         "OMAL-TOVOX": ["ROVOS", "DCT", "ADV", "DCT", "MEKRI", "P899", "TOVOX"],
-        "OMAL-TUMAK": ["ROVOS", "DCT", "ADV", "DCT", "DAXIB", "Q563", "UKUVO", "G462", "TUMAK"],
+        "OMAL-TUMAK": [
+          "ROVOS",
+          "DCT",
+          "ADV",
+          "DCT",
+          "DAXIB",
+          "Q563",
+          "UKUVO",
+          "G462",
+          "TUMAK",
+        ],
         "OMDB,DW,SJ-ALPOB": ["SENPA", "N571", "ALPOB"],
         "OMDB,DW,SJ-GABKO": ["DAVMO", "M318", "GABKO"],
         "OMDB,DW,SJ-KATIT": ["KUTLI", "L519", "ATUDO", "M318", "KATIT"],
         "OMDB,DW,SJ-KUMUN": ["DCT", "KUMUN"],
-        "OMDB,DW,SJ-MEMTU": ["ANVIX", "R401", "GIDIS", "G783-", "UKRAG", "L710", "MEMTU"],
+        "OMDB,DW,SJ-MEMTU": [
+          "ANVIX",
+          "R401",
+          "GIDIS",
+          "G783-",
+          "UKRAG",
+          "L710",
+          "MEMTU",
+        ],
         "OMDB,DW,SJ-ORMID": ["NABIX", "P699", "ORMID"],
-        "OMDB,DW,SJ-ORSAR": ["RIDAP", "M557", "TOTKU", "DCT", "KIVUS", "DCT", "LUDAM", "DCT", "ORSAR"],
-        "OMDB,DW,SJ-PEKEM": ["ANVIX", "R401", "GIDIS", "G783-", "RIGIL", "M628-", "PEKEM"],
-        "OMDB,DW,SJ-RIBOT": ["KUTLI", "L519", "ATUDO", "M318", "GOLGU", "M550", "RIBOT"],
+        "OMDB,DW,SJ-ORSAR": [
+          "RIDAP",
+          "M557",
+          "TOTKU",
+          "DCT",
+          "KIVUS",
+          "DCT",
+          "LUDAM",
+          "DCT",
+          "ORSAR",
+        ],
+        "OMDB,DW,SJ-PEKEM": [
+          "ANVIX",
+          "R401",
+          "GIDIS",
+          "G783-",
+          "RIGIL",
+          "M628-",
+          "PEKEM",
+        ],
+        "OMDB,DW,SJ-RIBOT": [
+          "KUTLI",
+          "L519",
+          "ATUDO",
+          "M318",
+          "GOLGU",
+          "M550",
+          "RIBOT",
+        ],
         "OMDB,DW,SJ-TANSU": ["ANVIX", "R401", "GIDIS", "G783-", "TANSU"],
         "OMDB,DW,SJ-TARDI": ["ANVIX", "L223", "TARDI"],
         "OMDB,DW,SJ-TOSNA*": ["MIROT", "Q576", "RORON", "M430", "TOSNA"],
@@ -1559,114 +2280,516 @@
         "OMDW-GOMTA": ["NOLSU", "M572", "GOMTA"],
         "OMDW-LALDO": ["NOLSU", "N300", "LALDO"],
         "OMFJ-ALPOB": ["SERSA", "L519", "IVOXI", "N571", "ALPOB"],
-        "OMFJ-GABKO": ["KUSEN","DCT","EMOPI", "DCT", "ITLAP", "R401", "GABKO"],
+        "OMFJ-GABKO": [
+          "KUSEN",
+          "DCT",
+          "EMOPI",
+          "DCT",
+          "ITLAP",
+          "R401",
+          "GABKO",
+        ],
         "OMFJ-KATIT": ["SERSA", "L519", "ATUDO", "M318", "KATIT"],
         "OMFJ-ORMID": ["SERSA", "L519", "IVOXI", "P699", "ORMID"],
         "OMFJ-PEKEM": ["VAVIM", "G783", "RIGIL", "M628", "PEKEM"],
-        "OMFJ-RIBOT": ["SERSA", "L519", "ATUDO", "M318", "GOLGU", "M550", "RIBOT"],
+        "OMFJ-RIBOT": [
+          "SERSA",
+          "L519",
+          "ATUDO",
+          "M318",
+          "GOLGU",
+          "M550",
+          "RIBOT",
+        ],
         "OMFJ-TANSU": ["VAVIM", "G783-", "TANSU"],
         "OMFJ-TONVO": ["FJV", "DCT", "TONVO"],
-        "OMFJ-TOSNA": ["SERSA", "L519", "IVOXI", "P699", "OXARI", "M430", "TOSNA"],
+        "OMFJ-TOSNA": [
+          "SERSA",
+          "L519",
+          "IVOXI",
+          "P699",
+          "OXARI",
+          "M430",
+          "TOSNA",
+        ],
         "OMFJ-TUMAK": ["SERSA", "L519", "IVOXI", "M557", "TUMAK"],
         "OMRK-ALPOB": ["PUVAL", "L519", "IVOXI", "N571", "ALPOB"],
         "OMRK-GABKO": ["ASNEK", "R401", "GABKO"],
-        "OMRK-GOMTA": ["PUVAL", "DCT", "NADNI", "DCT", "IVURO", "M428", "GOMTA"],
+        "OMRK-GOMTA": [
+          "PUVAL",
+          "DCT",
+          "NADNI",
+          "DCT",
+          "IVURO",
+          "M428",
+          "GOMTA",
+        ],
         "OMRK-KATIT": ["PUVAL", "L519", "ATUDO", "M318", "KATIT"],
-        "OMRK-LALDO": ["PUVAL", "DCT", "NADNI", "DCT", "IVURO", "M677", "LALDO"],
-        "OMRK-MEMTU": ["PUVAL", "DCT", "RUKOR", "DCT", "ANVIX", "R401", "GIDIS", "G783-", "UKRAG", "L710", "MEMTU"],
-        "OMRK-ORMID": ["PUVAL", "L519", "IVOXI", "N571", "TUDIS", "P699", "ORMID"],
-        "OMRK-PEKEM": ["PUVAL", "DCT", "RUKOR", "DCT", "ANVIX", "R401", "GIDIS", "G783-", "RIGIL", "M628-", "PEKEM"],
-        "OMRK-RIBOT": ["PUVAL", "L519", "ATUDO", "M318", "GOLGU", "M550", "RIBOT"],
-        "OMRK-TANSU": ["PUVAL", "DCT", "RUKOR", "DCT", "ANVIX", "R401", "GIDIS", "G783-", "TANSU"],
-        "OMRK-TARDI": ["PUVAL", "DCT", "RUKOR", "DCT", "ANVIX", "L223", "TARDI"],
-        "OMRK-TOSNA": ["PUVAL", "L519", "IVOXI", "P699", "OXARI", "M430", "TOSNA"],
+        "OMRK-LALDO": [
+          "PUVAL",
+          "DCT",
+          "NADNI",
+          "DCT",
+          "IVURO",
+          "M677",
+          "LALDO",
+        ],
+        "OMRK-MEMTU": [
+          "PUVAL",
+          "DCT",
+          "RUKOR",
+          "DCT",
+          "ANVIX",
+          "R401",
+          "GIDIS",
+          "G783-",
+          "UKRAG",
+          "L710",
+          "MEMTU",
+        ],
+        "OMRK-ORMID": [
+          "PUVAL",
+          "L519",
+          "IVOXI",
+          "N571",
+          "TUDIS",
+          "P699",
+          "ORMID",
+        ],
+        "OMRK-PEKEM": [
+          "PUVAL",
+          "DCT",
+          "RUKOR",
+          "DCT",
+          "ANVIX",
+          "R401",
+          "GIDIS",
+          "G783-",
+          "RIGIL",
+          "M628-",
+          "PEKEM",
+        ],
+        "OMRK-RIBOT": [
+          "PUVAL",
+          "L519",
+          "ATUDO",
+          "M318",
+          "GOLGU",
+          "M550",
+          "RIBOT",
+        ],
+        "OMRK-TANSU": [
+          "PUVAL",
+          "DCT",
+          "RUKOR",
+          "DCT",
+          "ANVIX",
+          "R401",
+          "GIDIS",
+          "G783-",
+          "TANSU",
+        ],
+        "OMRK-TARDI": [
+          "PUVAL",
+          "DCT",
+          "RUKOR",
+          "DCT",
+          "ANVIX",
+          "L223",
+          "TARDI",
+        ],
+        "OMRK-TOSNA": [
+          "PUVAL",
+          "L519",
+          "IVOXI",
+          "P699",
+          "OXARI",
+          "M430",
+          "TOSNA",
+        ],
         "OMRK-TUMAK": ["PUVAL", "L519", "IVOXI", "M557", "TUMAK"],
 
-//1.9.5. The following standard routings apply for traffic arriving at UAE international airports.
+        //1.9.5. The following standard routings apply for traffic arriving at UAE international airports.
         "ASTOG-OMDB": ["ASTOG", "L305", "ITBUL", "M677", "VUTEB"],
-        "ASTOG-OMDW": ["ASTOG", "L305", "KIVUS", "P559", "AMBOV", "Q322", "DATOB"],
+        "ASTOG-OMDW": [
+          "ASTOG",
+          "L305",
+          "KIVUS",
+          "P559",
+          "AMBOV",
+          "Q322",
+          "DATOB",
+        ],
         "ASTOG-OMFJ": ["ASTOG", "L305", "EMOTA", "R784", "KUSEN"],
         "ASTOG-OMRK": ["ASTOG", "L305", "EMOTA", "R784", "ALSIL"],
         "ASTOG-OMSJ": ["ASTOG", "L305", "EMOTA", "R784", "GONVI"],
         "BUNDU-OMAA": ["BUNDU", "B415", "UKILI"],
         "BUNDU-OMAD": ["BUNDU", "B415", "EGPOG", "Q666", "GIDOB"],
-        "BUNDU-OMAL": ["BUNDU", "B415", "EGPOG", "Q666", "GIDOB", "DCT", "ADV", "DCT", "KANIP"],
+        "BUNDU-OMAL": [
+          "BUNDU",
+          "B415",
+          "EGPOG",
+          "Q666",
+          "GIDOB",
+          "DCT",
+          "ADV",
+          "DCT",
+          "KANIP",
+        ],
         "ITRAX-OMAA,AD": ["ITRAX", "P899", "ROVOS"],
-        "ITRAX-OMAL": ["ITRAX","DCT", "VAVIM"],
+        "ITRAX-OMAL": ["ITRAX", "DCT", "VAVIM"],
         "KATIT-OMAA,AD": ["KATIT", "M318", "ATUDO"],
         "KATIT-OMAL": ["KATIT", "M318", "ATUDO", "DCT", "ADV", "DCT", "KANIP"],
         "KATIT-OMDB": ["KATIT", "M318", "RURAL", "Q317", "LORID"],
         "KATIT-OMDW": ["KATIT", "M318", "RURAL", "Q317", "LORID"],
-        "KATIT-OMRK": ["KATIT", "M318", "RURAL", "Q317", "LORID", "DCT", "TOVIV", "DCT", "ALSIL"],
+        "KATIT-OMRK": [
+          "KATIT",
+          "M318",
+          "RURAL",
+          "Q317",
+          "LORID",
+          "DCT",
+          "TOVIV",
+          "DCT",
+          "ALSIL",
+        ],
         "KATIT-OMSJ": ["KATIT", "M318", "RURAL", "Q317", "LORID"],
-        "KUPRO-OMAA": ["KUPRO", "N300", "KAXOB", "Q415", "UKILI"],
-        "KUPRO-OMAD": ["KUPRO", "N300", "GIDOB"],
-        "KUPRO-OMAL": ["KUPRO", "N300", "GIDOB", "DCT", "ADV", "DCT", "KANIP"],
+        "KUPRO-OMAA": ["KUPRO", "N300", "KAXOB", "Q415", "UKILI"],
+        "KUPRO-OMAD": ["KUPRO", "N300", "GIDOB"],
+        "KUPRO-OMAL": ["KUPRO", "N300", "GIDOB", "DCT", "ADV", "DCT", "KANIP"],
         "MENSA-OMFJ": ["MENSA", "T509", "FJV"],
         "MENSA-OMRK": ["MENSA", "N317", "NADNI"],
         "MENSA-OMSJ": ["MENSA", "N317", "NOLSU"],
-        "MUSAP-OMDB": ["MUSAP", "R401", "PEDOG", "Q308", "KIPOK", "Q568", "IMPED"],
+        "MUSAP-OMDB": [
+          "MUSAP",
+          "R401",
+          "PEDOG",
+          "Q308",
+          "KIPOK",
+          "Q568",
+          "IMPED",
+        ],
         "MUSAP-OMDW": ["MUSAP", "R401", "GIDIS"],
         "MUSAP-OMFJ": ["MUSAP", "R401", "PEDOG", "Q308", "RUDAT"],
-        "MUSAP-OMRK": ["MUSAP", "R401", "PEDOG", "Q308", "ORKOB", "T891", "NOLSU", "N317", "NADNI"],
-        "MUSAP-OMSJ": ["MUSAP", "R401", "PEDOG", "Q308", "ORKOB", "T891", "NOLSU"],
+        "MUSAP-OMRK": [
+          "MUSAP",
+          "R401",
+          "PEDOG",
+          "Q308",
+          "ORKOB",
+          "T891",
+          "NOLSU",
+          "N317",
+          "NADNI",
+        ],
+        "MUSAP-OMSJ": [
+          "MUSAP",
+          "R401",
+          "PEDOG",
+          "Q308",
+          "ORKOB",
+          "T891",
+          "NOLSU",
+        ],
         "NALPO-OMDB": ["NALPO", "P559", "VUTEB"],
         "NALPO-OMDW": ["NALPO", "P559", "AMBOV", "Q322", "DATOB"],
         "NALPO-OMDW*": ["NALPO", "P559", "KIVUS", "G666", "ELOVU"],
-        "NALPO-OMFJ": ["NALPO", "P559", "KIVUS", "L305", "EMOTA", "R784", "KUSEN"],
-        "NALPO-OMRK": ["NALPO", "P559", "KIVUS", "L305", "EMOTA", "R784", "ALSIL"],
-        "NALPO-OMSJ": ["NALPO", "P559", "KIVUS", "L305", "EMOTA", "R784", "GONVI"],
+        "NALPO-OMFJ": [
+          "NALPO",
+          "P559",
+          "KIVUS",
+          "L305",
+          "EMOTA",
+          "R784",
+          "KUSEN",
+        ],
+        "NALPO-OMRK": [
+          "NALPO",
+          "P559",
+          "KIVUS",
+          "L305",
+          "EMOTA",
+          "R784",
+          "ALSIL",
+        ],
+        "NALPO-OMSJ": [
+          "NALPO",
+          "P559",
+          "KIVUS",
+          "L305",
+          "EMOTA",
+          "R784",
+          "GONVI",
+        ],
         "OBNET-OMDB": ["OBNET", "M677", "VUTEB"],
         "OBNET-OMDW": ["OBNET", "M677", "ITBUL", "Q322", "DATOB"],
         "OBNET-OMDW*": ["OBNET", "M677", "LUDAM", "G666", "ELOVU"],
-        "OBNET-OMFJ": ["OBNET", "M677", "ITBUL", "L305", "EMOTA", "R784", "KUSEN"],
-        "OBNET-OMRK": ["OBNET", "M677", "ITBUL", "L305", "EMOTA", "R784", "ALSIL"],
-        "OBNET-OMSJ": ["OBNET", "M677", "ITBUL", "L305", "EMOTA", "R784", "GONVI"],
+        "OBNET-OMFJ": [
+          "OBNET",
+          "M677",
+          "ITBUL",
+          "L305",
+          "EMOTA",
+          "R784",
+          "KUSEN",
+        ],
+        "OBNET-OMRK": [
+          "OBNET",
+          "M677",
+          "ITBUL",
+          "L305",
+          "EMOTA",
+          "R784",
+          "ALSIL",
+        ],
+        "OBNET-OMSJ": [
+          "OBNET",
+          "M677",
+          "ITBUL",
+          "L305",
+          "EMOTA",
+          "R784",
+          "GONVI",
+        ],
         "ORSAR-OMAA": ["ORSAR", "DCT", "UKILI"],
         "ORSAR-OMAA,AD*": ["ORSAR", "G666", "ELOVU"],
-        "ORSAR-OMAA,AD": ["ORSAR", "R784", "TATLA", "L223", "VUTEB", "Q569", "OBREV", "Q311", "EMERU"],
+        "ORSAR-OMAA,AD": [
+          "ORSAR",
+          "R784",
+          "TATLA",
+          "L223",
+          "VUTEB",
+          "Q569",
+          "OBREV",
+          "Q311",
+          "EMERU",
+        ],
         "ORSAR-OMAD": ["ORSAR", "DCT", "GIDOB"],
-        "ORSAR-OMAL": ["ORSAR", "R784", "TATLA", "L223", "VUTEB", "Q569", "OBREV", "Q311", "TONKI", "DCT", "KANIP"],
+        "ORSAR-OMAL": [
+          "ORSAR",
+          "R784",
+          "TATLA",
+          "L223",
+          "VUTEB",
+          "Q569",
+          "OBREV",
+          "Q311",
+          "TONKI",
+          "DCT",
+          "KANIP",
+        ],
         "ORSAR-OMDB": ["ORSAR", "R784", "TATLA", "L223", "VUTEB"],
         "ORSAR-OMDW*": ["ORSAR", "G666", "ELOVU"],
         "ORSAR-OMDW": ["ORSAR", "R784", "GONVI"],
         "ORSAR-OMFJ": ["ORSAR", "R784", "KUSEN"],
         "ORSAR-OMRK": ["ORSAR", "R784", "ALSIL"],
         "ORSAR-OMSJ": ["ORSAR", "R784", "GONVI"],
-        "OVONA-OMAA": ["OVONA", "N318", "KAPUM", "Z522", "ALNEV", "Q415", "UKILI"],
+        "OVONA-OMAA": [
+          "OVONA",
+          "N318",
+          "KAPUM",
+          "Z522",
+          "ALNEV",
+          "Q415",
+          "UKILI",
+        ],
         "OVONA-OMAD": ["OVONA", "N318", "KAPUM", "N685", "GIDOB"],
-        "OVONA-OMAL": ["OVONA", "N318", "KAPUM", "N685", "GIDOB", "DCT", "ADV", "DCT", "KANIP"],
+        "OVONA-OMAL": [
+          "OVONA",
+          "N318",
+          "KAPUM",
+          "N685",
+          "GIDOB",
+          "DCT",
+          "ADV",
+          "DCT",
+          "KANIP",
+        ],
         "PASOV-OMDB": ["PASOV", "B540", "MIVEK", "P574", "IMPED"],
         "PASOV-OMDW": ["PASOV", "M564", "UMAMI"],
-        "PASOV-OMRK": ["PASOV", "B540", "ORKOB", "T891", "NOLSU", "N317", "NADNI"],
+        "PASOV-OMRK": [
+          "PASOV",
+          "B540",
+          "ORKOB",
+          "T891",
+          "NOLSU",
+          "N317",
+          "NADNI",
+        ],
         "PASOV-OMSJ": ["PASOV", "B540", "ORKOB", "T891", "NOLSU"],
         "PATAT-OMAA,AD": ["PATAT", "L519", "IVOXI", "Q311", "EMERU"],
-        "PATAT-OMAL": ["PATAT", "L519", "IVOXI", "Q311", "TONKI", "DCT", "KANIP"],
+        "PATAT-OMAL": [
+          "PATAT",
+          "L519",
+          "IVOXI",
+          "Q311",
+          "TONKI",
+          "DCT",
+          "KANIP",
+        ],
         "PATAT-OMDB,SJ,DW": ["PATAT", "L519", "PUVAL"],
-        "PATAT-OMFJ": ["PATAT", "L519", "EGPEP", "DCT", "EMOPI", "R784", "KUSEN"],
+        "PATAT-OMFJ": [
+          "PATAT",
+          "L519",
+          "EGPEP",
+          "DCT",
+          "EMOPI",
+          "R784",
+          "KUSEN",
+        ],
         "PATAT-OMRK": ["PATAT", "L519", "EGPEP"],
-        "PEKEM-OMAA,AD": ["PEKEM", "M628", "RIGIL", "G783", "VAVIM", "P899", "ROVOS"],
+        "PEKEM-OMAA,AD": [
+          "PEKEM",
+          "M628",
+          "RIGIL",
+          "G783",
+          "VAVIM",
+          "P899",
+          "ROVOS",
+        ],
         "PEKEM-OMAL": ["PEKEM", "M628", "RIGIL", "G783", "VAVIM"],
-        "PEKEM-OMDB": ["PEKEM", "M628", "RIGIL", "G783", "ASPED", "Q308", "KIPOK", "Q568", "IMPED"],
-        "PEKEM-OMDW": ["PEKEM", "M628", "RIGIL", "G783", "ASPED", "Q308", "PEDOG", "R401", "GIDIS"],
-        "PEKEM-OMFJ": ["PEKEM", "M628", "RIGIL", "G783", "ASPED", "Q308", "RUDAT"],
-        "PEKEM-OMRK": ["PEKEM", "M628", "RIGIL", "G783", "ASPED", "Q308", "ORKOB", "T891", "NOLSU", "N317", "NADNI"],
-        "PEKEM-OMSJ": ["PEKEM", "M628", "RIGIL", "G783", "ASPED", "Q308", "ORKOB", "T891", "NOLSU"],
+        "PEKEM-OMDB": [
+          "PEKEM",
+          "M628",
+          "RIGIL",
+          "G783",
+          "ASPED",
+          "Q308",
+          "KIPOK",
+          "Q568",
+          "IMPED",
+        ],
+        "PEKEM-OMDW": [
+          "PEKEM",
+          "M628",
+          "RIGIL",
+          "G783",
+          "ASPED",
+          "Q308",
+          "PEDOG",
+          "R401",
+          "GIDIS",
+        ],
+        "PEKEM-OMFJ": [
+          "PEKEM",
+          "M628",
+          "RIGIL",
+          "G783",
+          "ASPED",
+          "Q308",
+          "RUDAT",
+        ],
+        "PEKEM-OMRK": [
+          "PEKEM",
+          "M628",
+          "RIGIL",
+          "G783",
+          "ASPED",
+          "Q308",
+          "ORKOB",
+          "T891",
+          "NOLSU",
+          "N317",
+          "NADNI",
+        ],
+        "PEKEM-OMSJ": [
+          "PEKEM",
+          "M628",
+          "RIGIL",
+          "G783",
+          "ASPED",
+          "Q308",
+          "ORKOB",
+          "T891",
+          "NOLSU",
+        ],
         "RIBOT-OMAA,AD": ["RIBOT", "M550", "GOLGU", "M318", "ATUDO"],
-        "RIBOT-OMAL": ["RIBOT", "M550", "GOLGU", "M318", "ATUDO", "DCT", "ADV", "DCT", "KANIP"],
-        "RIBOT-OMDB,SJ": ["RIBOT", "M550", "GOLGU", "M318", "RURAL", "Q317", "LORID"],
-        "RIBOT-OMDW": ["RIBOT", "M550", "GOLGU", "M318", "RURAL", "Q317", "LORID"],
-        "RIBOT-OMRK": ["RIBOT", "M550", "GOLGU", "M318", "RURAL", "Q317", "LORID", "DCT", "TOVIV", "DCT", "ALSIL"],
+        "RIBOT-OMAL": [
+          "RIBOT",
+          "M550",
+          "GOLGU",
+          "M318",
+          "ATUDO",
+          "DCT",
+          "ADV",
+          "DCT",
+          "KANIP",
+        ],
+        "RIBOT-OMDB,SJ": [
+          "RIBOT",
+          "M550",
+          "GOLGU",
+          "M318",
+          "RURAL",
+          "Q317",
+          "LORID",
+        ],
+        "RIBOT-OMDW": [
+          "RIBOT",
+          "M550",
+          "GOLGU",
+          "M318",
+          "RURAL",
+          "Q317",
+          "LORID",
+        ],
+        "RIBOT-OMRK": [
+          "RIBOT",
+          "M550",
+          "GOLGU",
+          "M318",
+          "RURAL",
+          "Q317",
+          "LORID",
+          "DCT",
+          "TOVIV",
+          "DCT",
+          "ALSIL",
+        ],
         "SODEX-OMAA,AD": ["SODEX", "N563", "NOBTO"],
         "SODEX-OMAL": ["SODEX", "N563", "ELUDA", "G783", "VAVIM"],
         "SOLUD-OMDB": ["SOLUD", "P574", "GISMO", "P574", "IMPED"],
         "TANSU-OMAA,AD": ["TANSU", "G783", "VAVIM", "P899", "ROVOS"],
         "TANSU-OMAL": ["TANSU", "G783", "VAVIM"],
-        "TANSU-OMDB": ["TANSU", "G783", "ASPED", "Q308", "KIPOK", "Q568", "IMPED"],
-        "TANSU-OMDW": ["TANSU", "G783", "ASPED", "Q308", "PEDOG", "R401", "GIDIS"],
+        "TANSU-OMDB": [
+          "TANSU",
+          "G783",
+          "ASPED",
+          "Q308",
+          "KIPOK",
+          "Q568",
+          "IMPED",
+        ],
+        "TANSU-OMDW": [
+          "TANSU",
+          "G783",
+          "ASPED",
+          "Q308",
+          "PEDOG",
+          "R401",
+          "GIDIS",
+        ],
         "TANSU-OMFJ": ["TANSU", "G783", "ASPED", "Q308", "RUDAT"],
-        "TANSU-OMRK": ["TANSU", "G783", "ASPED", "Q308", "ORKOB", "T891", "NOLSU", "N317", "NADNI"],
-        "TANSU-OMSJ": ["TANSU", "G783", "ASPED", "Q308", "ORKOB", "T891", "NOLSU"],
+        "TANSU-OMRK": [
+          "TANSU",
+          "G783",
+          "ASPED",
+          "Q308",
+          "ORKOB",
+          "T891",
+          "NOLSU",
+          "N317",
+          "NADNI",
+        ],
+        "TANSU-OMSJ": [
+          "TANSU",
+          "G783",
+          "ASPED",
+          "Q308",
+          "ORKOB",
+          "T891",
+          "NOLSU",
+        ],
         "TAPRA-OMDB": ["TAPRA", "M762", "MIVEK", "P574", "IMPED"],
         "TAPRA-OMDW": ["TAPRA", "M762", "VAXAS", "M564", "UMAMI"],
         "TOSNA-OMAA": ["TOSNA", "N685", "UMEVU", "Q415", "UKILI"],
@@ -1674,15 +2797,43 @@
         "TOSNA-OMAL": ["TOSNA", "N685", "GIDOB", "DCT", "ADV", "DCT", "KANIP"],
         "VAXAS-OMDB": ["VAXAS", "M762", "MIVEK", "P574", "IMPED"],
         "VAXAS-OMDW": ["VAXAS", "M564", "UMAMI"],
-        "VAXAS-OMRK": ["VAXAS", "M762", "RUDAT", "Q308", "ORKOB", "T891", "NOLSU", "N317", "NADNI"],
-        "VAXAS-OMSJ": ["VAXAS", "M762", "RUDAT", "Q308", "ORKOB", "T891", "NOLSU"],
+        "VAXAS-OMRK": [
+          "VAXAS",
+          "M762",
+          "RUDAT",
+          "Q308",
+          "ORKOB",
+          "T891",
+          "NOLSU",
+          "N317",
+          "NADNI",
+        ],
+        "VAXAS-OMSJ": [
+          "VAXAS",
+          "M762",
+          "RUDAT",
+          "Q308",
+          "ORKOB",
+          "T891",
+          "NOLSU",
+        ],
 
-//FRA routes-------------------------
+        //FRA routes-------------------------
         "BUNDU-LABRI-FRA": ["BUNDU", "DCT", "LABRI"],
         "BUNDU-LABRI*-FRA": ["BUNDU", "B415", "UKILI", "DCT", "LABRI"],
         "BUNDU-OMAA-FRA": ["BUNDU", "DCT", "EGPOG", "B415", "UKILI"],
         "BUNDU-OMAD-FRA": ["BUNDU", "DCT", "EGPOG", "Q666", "GIDOB"],
-        "BUNDU-OMAL-FRA": ["BUNDU", "DCT", "EGPOG", "Q666", "GIDOB", "DCT", "ADV", "DCT", "KANIP"],
+        "BUNDU-OMAL-FRA": [
+          "BUNDU",
+          "DCT",
+          "EGPOG",
+          "Q666",
+          "GIDOB",
+          "DCT",
+          "ADV",
+          "DCT",
+          "KANIP",
+        ],
         "BUNDU-RETAS-FRA": ["BUNDU", "DCT", "NAPMA", "N685", "RETAS"],
         "BUNDU-TONVO-FRA": ["BUNDU", "DCT", "GIDOB", "DCT", "TONVO"],
         "BUNDU-TONVO*-FRA": ["BUNDU", "B415", "UKILI", "DCT", "TONVO"],
@@ -1691,8 +2842,28 @@
         "GISMO-KUMUN-FRA": ["GISMO", "DCT", "KUMUN"],
         "GISMO-ORMID-FRA": ["GISMO", "DCT", "EGTAG", "P699", "ORMID"],
         "GISMO-TUMAK-FRA": ["GISMO", "DCT", "MITIX", "M557", "TUMAK"],
-        "ITRAX-ALPOB-FRA": ["ITRAX", "DCT", "ORBOL", "G462", "UKUVO", "Q563", "IMGUX", "N563", "ALPOB"],
-        "ITRAX-ORMID-FRA": ["ITRAX", "DCT", "ORBOL", "G462", "UKUVO", "Q563", "IMGUX", "P699", "ORMID"],
+        "ITRAX-ALPOB-FRA": [
+          "ITRAX",
+          "DCT",
+          "ORBOL",
+          "G462",
+          "UKUVO",
+          "Q563",
+          "IMGUX",
+          "N563",
+          "ALPOB",
+        ],
+        "ITRAX-ORMID-FRA": [
+          "ITRAX",
+          "DCT",
+          "ORBOL",
+          "G462",
+          "UKUVO",
+          "Q563",
+          "IMGUX",
+          "P699",
+          "ORMID",
+        ],
         "ITRAX-TOVOX*-FRA": ["ITRAX", "DCT", "UMIBU", "P899", "TOVOX"],
         "ITRAX-TOVOX-FRA": ["ITRAX", "DCT", "TOVOX"],
         "ITRAX-TUMAK-FRA": ["ITRAX", "DCT", "ORBOL", "G462", "TUMAK"],
@@ -1702,272 +2873,424 @@
         "KUPRO-TONVO*-FRA": ["KUPRO", "N300", "GIDOB", "DCT", "TONVO"],
         "LALDO-ALPOB-FRA": ["LALDO", "DCT", "TUDIS", "N571", "ALPOB"],
         "LALDO-ORMID-FRA": ["LALDO", "DCT", "EGTAG", "P699", "ORMID"],
-        "LALDO-TOSNA-FRA": ["LALDO", "DCT", "EGTAG", "Q576", "RORON", "M430", "TOSNA"],
+        "LALDO-TOSNA-FRA": [
+          "LALDO",
+          "DCT",
+          "EGTAG",
+          "Q576",
+          "RORON",
+          "M430",
+          "TOSNA",
+        ],
         "LALDO-TUMAK-FRA": ["LALDO", "DCT", "MITIX", "M557", "TUMAK"],
         "MENSA-ALPOB-FRA": ["MENSA", "DCT", "TUDIS", "N571", "ALPOB"],
         "MENSA-ORMID-FRA": ["MENSA", "DCT", "EGTAG", "P699", "ORMID"],
-        "MENSA-TOSNA-FRA": ["MENSA", "DCT", "EGTAG", "Q576", "RORON", "M430", "TOSNA"],
+        "MENSA-TOSNA-FRA": ["MENSA", "DCT", "EGTAG", "Q576", "RORON", "M430", "TOSNA",],
         "MENSA-TUMAK-FRA": ["MENSA", "DCT", "MITIX", "M557", "TUMAK"],
         "NALPO-LALDO-FRA": ["NALPO", "DCT", "LALDO"],
         "NALPO-TARDI-FRA": ["NALPO", "DCT", "LOVEM", "DCT", "TARDI"],
-        "NALPO-TARDI*-FRA": ["NALPO", "DCT", "LOVEM", "DCT", "ANVIX", "L223", "TARDI"],
+        "NALPO-TARDI*-FRA": [
+          "NALPO",
+          "DCT",
+          "LOVEM",
+          "DCT",
+          "ANVIX",
+          "L223",
+          "TARDI",
+        ],
         "NALPO-TONVO-FRA": ["NALPO", "DCT", "TONVO"],
         "OBNET-LALDO-FRA": ["OBNET", "DCT", "TOVIV", "DCT", "LALDO"],
         "OBNET-TARDI-FRA": ["OBNET", "DCT", "IVOXI", "DCT", "TARDI"],
-        "OBNET-TARDI*-FRA": ["OBNET", "DCT", "IVOXI", "DCT", "ANVIX", "L223", "TARDI"],
+        "OBNET-TARDI*-FRA": [
+          "OBNET",
+          "DCT",
+          "IVOXI",
+          "DCT",
+          "ANVIX",
+          "L223",
+          "TARDI",
+        ],
         "OBNET-TONVO-FRA": ["OBNET", "DCT", "TONVO"],
-        "ORSAR-LALDO-FRA": ["ORSAR", "DCT", "GIBIB", "DCT", "TOVIV", "DCT", "LALDO"],
+        "ORSAR-LALDO-FRA": [
+          "ORSAR",
+          "DCT",
+          "GIBIB",
+          "DCT",
+          "TOVIV",
+          "DCT",
+          "LALDO",
+        ],
         "ORSAR-TARDI-FRA": ["ORSAR", "DCT", "LAGTA", "DCT", "TARDI"],
-        "ORSAR-TARDI*-FRA": ["ORSAR", "DCT", "LAGTA", "DCT", "ANVIX", "L223", "TARDI"],
+        "ORSAR-TARDI*-FRA": [
+          "ORSAR",
+          "DCT",
+          "LAGTA",
+          "DCT",
+          "ANVIX",
+          "L223",
+          "TARDI",
+        ],
         "ORSAR-TONVO-FRA": ["ORSAR", "DCT", "GIBIB", "DCT", "TONVO"],
         "OVONA-LABRI-FRA": ["OVONA", "DCT", "KAPUM", "DCT", "LABRI"],
         "OVONA-RETAS-FRA": ["OVONA", "DCT", "NAPMA", "N685", "RETAS"],
         "PATAT-ALPOB-FRA": ["PATAT", "DCT", "TUDIS", "N571", "ALPOB"],
-        "PATAT-OMAA ,AD-FRA": ["PATAT", "DCT", "ITLAP", "L519", "IVOXI", "Q311", "EMERU"],
-        "PATAT-OMAL-FRA": ["PATAT", "DCT", "ITLAP", "L519", "IVOXI", "Q311", "TONKI", "DCT", "KANIP"],
+        "PATAT-OMAA ,AD-FRA": [
+          "PATAT",
+          "DCT",
+          "ITLAP",
+          "L519",
+          "IVOXI",
+          "Q311",
+          "EMERU",
+        ],
+        "PATAT-OMAL-FRA": [
+          "PATAT",
+          "DCT",
+          "ITLAP",
+          "L519",
+          "IVOXI",
+          "Q311",
+          "TONKI",
+          "DCT",
+          "KANIP",
+        ],
         "PATAT-ORMID-FRA": ["PATAT", "DCT", "EGTAG", "P699", "ORMID"],
         "PATAT-TARDI-FRA": ["PATAT", "DCT", "TARDI"],
         "PATAT-TARDI*-FRA": ["PATAT", "DCT", "ANVIX", "L223", "TARDI"],
-        "PATAT-TOSNA-FRA": ["PATAT", "DCT", "EGTAG", "Q576", "RORON", "M430", "TOSNA"],
+        "PATAT-TOSNA-FRA": [
+          "PATAT",
+          "DCT",
+          "EGTAG",
+          "Q576",
+          "RORON",
+          "M430",
+          "TOSNA",
+        ],
         "PATAT-TUMAK-FRA": ["PATAT", "DCT", "MITIX", "M557", "TUMAK"],
-        "SIR-LALDO-FRA": ["SIR", "DCT", "TATLA", "DCT", "TOVIV", "DCT", "LALDO"],
+        "SIR-LALDO-FRA": [
+          "SIR",
+          "DCT",
+          "TATLA",
+          "DCT",
+          "TOVIV",
+          "DCT",
+          "LALDO",
+        ],
         "SIR-TARDI-FRA": ["SIR", "DCT", "TARDI"],
         "SIR-TARDI*-FRA": ["SIR", "DCT", "ANVIX", "L223", "TARDI"],
         "SIR-TONVO-FRA": ["SIR", "DCT", "TATLA", "DCT", "TONVO"],
         "SODEX-ALPOB-FRA": ["SODEX", "DCT", "BOSEV", "N563", "ALPOB"],
-        "SODEX-ORMID-FRA": ["SODEX", "DCT", "BOSEV", "N563", "IMGUX", "P699", "ORMID"],
+        "SODEX-ORMID-FRA": [
+          "SODEX",
+          "DCT",
+          "BOSEV",
+          "N563",
+          "IMGUX",
+          "P699",
+          "ORMID",
+        ],
         "SODEX-TOVOX-FRA": ["SODEX", "DCT", "UMIBU", "DCT", "TOVOX"],
         "SODEX-TOVOX*-FRA": ["SODEX", "DCT", "UMIBU", "P899", "TOVOX"],
-        "SODEX-TUMAK-FRA": ["SODEX", "DCT", "BOSEV", "Q565", "UKUVO", "G462", "TUMAK"],
+        "SODEX-TUMAK-FRA": ["SODEX","DCT","BOSEV","Q565","UKUVO","G462","TUMAK",],
         "TOSNA-LABRI-FRA": ["TOSNA", "DCT", "LABRI"],
         "TOSNA-RETAS-FRA": ["TOSNA", "DCT", "NAPMA", "N685", "RETAS"],
-    };
+      };
 
-  // Array (sector info library) to store rows ------------------
-  const sectorData = [
-    { sector: "SOUTH", limit: "GND - F600", freq: "128.250"},
-    { sector: "LIMA", limit: "GND - F600", freq: "125.925"},
-    { sector: "BRAVO", limit: "GND - F600", freq: "119.325"},
-    { sector: "NORTH", limit: "GND - F600", freq: "132.150"},
-    { sector: "MIKE", limit: "GND - F600", freq: "132.550"},
-    { sector: "CENTRAL", limit: "GND - F600", freq: "124.375"},
-    { sector: "DELTA", limit: "GND - F255", freq: "120.900"},
-    { sector: "HOTEL", limit: "GND - F255", freq: "128.125"},
-    { sector: "ALPHA", limit: "GND - F255", freq: "129.500"},
-    { sector: "EAST", limit: "GND - F255", freq: "125.375"},
-    { sector: "ROMEO", limit: "GND - F255", freq: "124.850"},
-    { sector: "GOLF", limit: "GND - F245", freq: "120.525"},
-    { sector: "WEST", limit: "GND - F245", freq: "119.300"},
-    { sector: "YANKEE", limit: "A095 - F195", freq: "118.925"}
+      const CFL_XFL = {
+        "ASTOG-OMDB": { CFL: "F210 or Below", XFL: "A100" },
+        "ASTOG-OMDW": { CFL: "F210 or Below", XFL: "F160" },
+        "ASTOG-OMFJ": { CFL: "F210 or Below", XFL: "A100" },
+        "ASTOG-OMRK": { CFL: "F210 or Below", XFL: "A100" },
+        "ASTOG-OMSJ": { CFL: "F210 or Below", XFL: "A090" },
+        "BUNDU-OMAA": { CFL: "F350 or Below", XFL: "A120" },
+        "BUNDU-OMAD": { CFL: "F350 or Below", XFL: "A100" },
+        "OMAA,AD-GABKO": {
+          CFL: "F150",
+          XFL: "RFL",
+          REMARKS: "K for Krachi FIR",
+        },
+        "BUNDU-LABRI": {
+          CFL: "RFL / F270 if Dep Doha",
+          XFL: "RFL",
+          REMARKS:
+            "Overflying Muscat FIR or with destination other than OOMS/OOMN/OOSH",
+        },
+        "BUNDU-RETAS": {
+          CFL: "RFL / F270 if Dep Doha",
+          XFL: "F330 or Below",
+          REMARKS:
+            "Destinations OOMS/OOMN/OOSH. <br>FL 330 or below for OOMS/OOMN and FL 230 for OOSH",
+        },
+        "OMAA,AD-TUMAK": { CFL: "F150", XFL: "RFL" },
+        "OMAA,AD-ORMID": {
+          CFL: "F150",
+          XFL: "F260 or Below Crusing",
+          REMARKS: "Destinations: OBBI, OBBS, OBKH, OEDF and OEDR",
+        },
+      };
 
-  ];
+      // Array (sector info library) to store rows ------------------
+      const sectorData = [
+        { sector: "SOUTH", limit: "GND - F600", freq: "128.250" },
+        { sector: "LIMA", limit: "GND - F600", freq: "125.925" },
+        { sector: "BRAVO", limit: "GND - F600", freq: "119.325" },
+        { sector: "NORTH", limit: "GND - F600", freq: "132.150" },
+        { sector: "MIKE", limit: "GND - F600", freq: "132.550" },
+        { sector: "CENTRAL", limit: "GND - F600", freq: "124.375" },
+        { sector: "DELTA", limit: "GND - F255", freq: "120.900" },
+        { sector: "HOTEL", limit: "GND - F255", freq: "128.125" },
+        { sector: "ALPHA", limit: "GND - F255", freq: "129.500" },
+        { sector: "EAST", limit: "GND - F255", freq: "125.375" },
+        { sector: "ROMEO", limit: "GND - F255", freq: "124.850" },
+        { sector: "GOLF", limit: "GND - F245", freq: "120.525" },
+        { sector: "WEST", limit: "GND - F245", freq: "119.300" },
+        { sector: "YANKEE", limit: "A095 - F195", freq: "118.925" },
+      ];
 
-//hold info library --------------------------------
-const holdingLibrary = [
-  { point: "ITLAP", heading: 204, leg: 6, turn: "Left", outboundHeading: 024, limit: "A100 - F180"},
-  { point: "VUTEB", heading: 107, leg: 8, turn: "Right", outboundHeading: 287, limit: "A100 - F250"},
-  { point: "IMPED", heading: 298, leg: 8, turn: "Right", outboundHeading: 118, limit: "A100 - F250"}, 
-  { point: "ALNEV", heading: 117, leg: 8, turn: "Right", outboundHeading: 297, limit: "A100 - F220"},
-  { point: "ROVOS", heading: 280, leg: 7, turn: "Right", outboundHeading: 100, limit: "A100 - F160"} 
-];
+      //hold info library --------------------------------
+      const holdingLibrary = [
+        {
+          point: "ITLAP",
+          heading: 204,
+          leg: 6,
+          turn: "Left",
+          outboundHeading: 024,
+          limit: "A100 - F180",
+        },
+        {
+          point: "VUTEB",
+          heading: 107,
+          leg: 8,
+          turn: "Right",
+          outboundHeading: 287,
+          limit: "A100 - F250",
+        },
+        {
+          point: "IMPED",
+          heading: 298,
+          leg: 8,
+          turn: "Right",
+          outboundHeading: 118,
+          limit: "A100 - F250",
+        },
+        {
+          point: "ALNEV",
+          heading: 117,
+          leg: 8,
+          turn: "Right",
+          outboundHeading: 297,
+          limit: "A100 - F220",
+        },
+        {
+          point: "ROVOS",
+          heading: 280,
+          leg: 7,
+          turn: "Right",
+          outboundHeading: 100,
+          limit: "A100 - F160",
+        },
+      ];
 
-// --- Prohibited Category  Library ------------------------
-const prohibitatedAreas = [
-  {
-    shapeName: "OMP_48 Argoob",
-    shapeType: "circle",
-    coords: ["243850.46N","0550715.30E"],
-    radiusNm: 5,
-    limit: "UNL - GND",
-    type: "Permanent, Military activity extremely hazardous to aircraft"
-  },
-  {shapeName: "OMP_108 Tawilah", shapeType: "circle", coords: ["244041N", "0544152E"], radiusNm: 3,
-    limit: "FL220 - GND", 
-    type: "Permanent, Controlled by Air Operations Center."
-  }
+      // --- Prohibited Category  Library ------------------------
+      const prohibitatedAreas = [
+        {
+          shapeName: "OMP_48 Argoob",
+          shapeType: "circle",
+          coords: ["243850.46N", "0550715.30E"],
+          radiusNm: 5,
+          limit: "UNL - GND",
+          type: "Permanent, Military activity extremely hazardous to aircraft",
+        },
+        {
+          shapeName: "OMP_108 Tawilah",
+          shapeType: "circle",
+          coords: ["244041N", "0544152E"],
+          radiusNm: 3,
+          limit: "FL220 - GND",
+          type: "Permanent, Controlled by Air Operations Center.",
+        },
 
-//sample of rectangle shape
-  /*{shapeName: "Rectangle A3", shapeType: "rectangle",
-    corner1: ["252400N","0562000E"],
-    corner2: ["252500N","0562100E"],
-    limit: "Surface – 8,000ft",
-    type: "Danger"
-  }*/
-];
+        //sample of rectangle shape
+        /*{shapeName: "Rectangle A3", shapeType: "rectangle",
+            corner1: ["252400N","0562000E"],
+            corner2: ["252500N","0562100E"],
+            limit: "Surface – 8,000ft",
+            type: "Danger"
+          }*/
+      ];
 
-// --- Restricted Category Library -----------------------
-const restrictedAreas = [
-  {
-    shapeName: "OIR_38 Siri_Island",
-    shapeType: "circle",
-    coords: ["255420N","0543320E"],
-    radiusNm: 12,
-    limit: "12,000ft AMSL - GND",
-    type: "Permanent"
-  },
-  {
-    shapeName: "OMR_51 Minhad_Trng_Area",
-    shapeType: "polygon",
-    coords: [
-        ["245630.00N", "0551155.00E"],
-        ["244755.14N", "0554814.67E"],
-        ["244303.89N", "0554813.77E"],	
-        ["244044.20N", "0554813.34E"],
-        ["243500.00N", "0554413.00E"],
-        ["242923.17N", "0554558.61E"],
-        ["242437.88N", "0554124.58E"],
-        ["242943.38N", "0551411.55E"],
-        ["243429.76N", "0551331.68E"],
-        ["243335.74N", "0550548.57E"],
-        ["243447.39N", "0550401.23E"],
-        ["243824.15N", "0550147.31E"],
-        ["244009.93N", "0550137.10E"],
-        ["245630.00N", "0551155.00E"]
-    ],
-    limit: "FL300 - FL155",
-    type: "Activity notified by UAE ACC, When active: Controlled by AL MAKTOUM RADAR, Contact 124.025 MHz before entering Military jet training"
-  },
-  {
-    shapeName: "OMR_53 Minhad_Trng_Area",
-    shapeType: "polygon",
-    coords: [
-        ["244134.55N", "0551221.09E"],
-        ["244030.00N", "0551430.00E"],
-        ["243453.00N", "0552421.00E"],
-        ["243500.00N", "0552700.00E"],
-        ["243500.41N", "0553519.70E"],
-        ["243500.00N", "0554413.00E"],
-        ["242324.51N", "0554750.88E"],
-        ["242534.00N", "0553628.00E"],
-        ["242804.83N", "0552301.05E"],
-        ["242943.38N", "0551411.55E"],
-        ["243429.76N", "0551331.68E"],
-        ["244134.55N", "0551221.09E"]
-    ],
-    limit: "FL155 - GND",
-    type: "Activity notified by UAE ACC, When active: Controlled by DUBAI SOUTH RADAR, Contact 120.400 MHz before entering Military jet training"
-  },
-  {
-    shapeName: "OMR_67 Ras_Al_Kheimah",
-    shapeType: "polygon",
-    coords: [
-        ["253530N", "0562150E"],
-        ["252500N", "0562150E"],
-        ["252500N", "0555958E"],	
-        ["252800N", "0554500E"],
-        ["255230N", "0560130E"],
-        ["255316N", "0560729E"],
-        ["253549N", "0561011E"],
-        ["253613N", "0561945E"],
-        ["253530N", "0562150E"]
-    ],
-    limit: "FL300 - 9,500ft AGL",
-    type: "Activity notified by UAE ACC, High level military jet training"
-  }
-];
+      // --- Restricted Category Library -----------------------
+      const restrictedAreas = [
+        {
+          shapeName: "OIR_38 Siri_Island",
+          shapeType: "circle",
+          coords: ["255420N", "0543320E"],
+          radiusNm: 12,
+          limit: "12,000ft AMSL - GND",
+          type: "Permanent",
+        },
+        {
+          shapeName: "OMR_51 Minhad_Trng_Area",
+          shapeType: "polygon",
+          coords: [
+            ["245630.00N", "0551155.00E"],
+            ["244755.14N", "0554814.67E"],
+            ["244303.89N", "0554813.77E"],
+            ["244044.20N", "0554813.34E"],
+            ["243500.00N", "0554413.00E"],
+            ["242923.17N", "0554558.61E"],
+            ["242437.88N", "0554124.58E"],
+            ["242943.38N", "0551411.55E"],
+            ["243429.76N", "0551331.68E"],
+            ["243335.74N", "0550548.57E"],
+            ["243447.39N", "0550401.23E"],
+            ["243824.15N", "0550147.31E"],
+            ["244009.93N", "0550137.10E"],
+            ["245630.00N", "0551155.00E"],
+          ],
+          limit: "FL300 - FL155",
+          type: "Activity notified by UAE ACC, When active: Controlled by AL MAKTOUM RADAR,\n Contact 124.025 MHz before entering Military jet training",
+        },
+        {
+          shapeName: "OMR_53 Minhad_Trng_Area",
+          shapeType: "polygon",
+          coords: [
+            ["244134.55N", "0551221.09E"],
+            ["244030.00N", "0551430.00E"],
+            ["243453.00N", "0552421.00E"],
+            ["243500.00N", "0552700.00E"],
+            ["243500.41N", "0553519.70E"],
+            ["243500.00N", "0554413.00E"],
+            ["242324.51N", "0554750.88E"],
+            ["242534.00N", "0553628.00E"],
+            ["242804.83N", "0552301.05E"],
+            ["242943.38N", "0551411.55E"],
+            ["243429.76N", "0551331.68E"],
+            ["244134.55N", "0551221.09E"],
+          ],
+          limit: "FL155 - GND",
+          type: "Activity notified by UAE ACC, When active: Controlled by DUBAI SOUTH RADAR,\n Contact 120.400 MHz before entering Military jet training",
+        },
+        {
+          shapeName: "OMR_67 Ras_Al_Kheimah",
+          shapeType: "polygon",
+          coords: [
+            ["253530N", "0562150E"],
+            ["252500N", "0562150E"],
+            ["252500N", "0555958E"],
+            ["252800N", "0554500E"],
+            ["255230N", "0560130E"],
+            ["255316N", "0560729E"],
+            ["253549N", "0561011E"],
+            ["253613N", "0561945E"],
+            ["253530N", "0562150E"],
+          ],
+          limit: "FL300 - 9,500ft AGL",
+          type: "Activity notified by UAE ACC, High level military jet training",
+        },
+      ];
 
-// -Danger Category Library ---
-const dangerAreas = [
-  /*{
-    shapeName: "Circle C1",
-    shapeType: "circle",
-    coords: ["251200N","0554000E"],
-    radiusNm: 2,
-    limit: "FL60 – FL120",
-    type: "Temporary"
-  },*/
-  {
-    shapeName: "OMD_22 Sea_Range_Charlie",
-    shapeType: "polygon",
-    coords: [
-       ["250330N", "0541625E"],
-       ["251200N", "0542210E"],
-       ["250713N", "0543130E"],
-       ["245830N", "0542545E"],
-       ["250330N", "0541625E"]
-    ],
-    limit: "FL300 - GND	",
-    type: "NOTAM, Air to Air towed target gunnery and Naval gunnery practice, Controlled by UAE ACC "
-  },
-  {
-    shapeName: "OMD_24 Bargat_Al_Hagat",
-    shapeType: "polygon",
-    coords: [
-       ["243429.76N", "0551331.68E"],
-       ["242931.08N", "0551413.26E"],
-       ["242839.42N", "0550708.58E"],
-       ["243008.88N", "0550517.88E"],
-       ["243328.80N", "0550449.32E"],
-       ["243429.76N", "0551331.68E"]
-    ],
-    limit: "FL220 - GND	",
-    type: "NOTAM - Controlled by AUH APP"
-  }
-];
+      // -Danger Category Library ---
+      const dangerAreas = [
+        /*{
+          shapeName: "Circle C1",
+          shapeType: "circle",
+          coords: ["251200N","0554000E"],
+          radiusNm: 2,
+          limit: "FL60 – FL120",
+          type: "Temporary"
+        },*/
+        {
+          shapeName: "OMD_22 Sea_Range_Charlie",
+          shapeType: "polygon",
+          coords: [
+            ["250330N", "0541625E"],
+            ["251200N", "0542210E"],
+            ["250713N", "0543130E"],
+            ["245830N", "0542545E"],
+            ["250330N", "0541625E"],
+          ],
+          limit: "FL300 - GND	",
+          type: "NOTAM, Air to Air towed target gunnery and Naval gunnery practice,\n Controlled by UAE ACC ",
+        },
+        {
+          shapeName: "OMD_24 Bargat_Al_Hagat",
+          shapeType: "polygon",
+          coords: [
+            ["243429.76N", "0551331.68E"],
+            ["242931.08N", "0551413.26E"],
+            ["242839.42N", "0550708.58E"],
+            ["243008.88N", "0550517.88E"],
+            ["243328.80N", "0550449.32E"],
+            ["243429.76N", "0551331.68E"],
+          ],
+          limit: "FL220 - GND	",
+          type: "NOTAM - Controlled by AUH APP",
+        },
+      ];
 
-// -Training Category Library ---
-const trainingAreas = [
-  {
-    shapeName: "TRNG_A",
-    shapeType: "polygon",
-    coords: [
-       ["253026N", "0533441E"],
-       ["252203N", "0532838E"],
-       ["250534N", "0535616E"],
-       ["251355N", "0540220E"],
-       ["253026N", "0533441E"]
-    ],
-    limit: "13,000ft AMSL - 6,000ft AMSL",
-    type: "Civil Training Flights, Activity notified by UAE ACC, When active: Controlled by UAE ACC, Contact: 120.525 Mhz"
-  },
-  {
-    shapeName: "TRNG_B",
-    shapeType: "polygon",
-    coords: [
-       ["251341N", "0532237E"],
-       ["252203N", "0532838E"],
-       ["250534N", "0535616E"],
-       ["245711N", "0535012E"],
-       ["251341N", "0532237E"]
-    ],
-    limit: "13,000ft AMSL - 6,000ft AMSL",
-    type: "Civil Training Flights, Activity notified by UAE ACC, When active: Controlled by UAE ACC, Contact: 120.525 Mhz"
-  }
-];
+      // -Training Category Library ---
+      const trainingAreas = [
+        {
+          shapeName: "TRNG_A",
+          shapeType: "polygon",
+          coords: [
+            ["253026N", "0533441E"],
+            ["252203N", "0532838E"],
+            ["250534N", "0535616E"],
+            ["251355N", "0540220E"],
+            ["253026N", "0533441E"],
+          ],
+          limit: "13,000ft AMSL - 6,000ft AMSL",
+          type: "Civil Training Flights, Activity notified by UAE ACC,\n When active: Controlled by UAE ACC, Contact: 120.525 Mhz",
+        },
+        {
+          shapeName: "TRNG_B",
+          shapeType: "polygon",
+          coords: [
+            ["251341N", "0532237E"],
+            ["252203N", "0532838E"],
+            ["250534N", "0535616E"],
+            ["245711N", "0535012E"],
+            ["251341N", "0532237E"],
+          ],
+          limit: "13,000ft AMSL - 6,000ft AMSL",
+          type: "Civil Training Flights, Activity notified by UAE ACC,\n When active: Controlled by UAE ACC, Contact: 120.525 Mhz",
+        },
+      ];
 
-  // Function to render table from sectorData
-  function renderSectorTable() {
-    const tbody = document.querySelector("#sectorTable tbody");
-    tbody.innerHTML = ""; // clear old rows
+      // Function to render table from sectorData
+      function renderSectorTable() {
+        const tbody = document.querySelector("#sectorTable tbody");
+        tbody.innerHTML = ""; // clear old rows
 
-    sectorData.forEach(row => {
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
+        sectorData.forEach((row) => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
         <td>${row.sector}</td>
         <td>${row.limit}</td>
         <td>${row.freq}</td>
       `;
-      tbody.appendChild(tr);
-    });
-  }
+          tbody.appendChild(tr);
+        });
+      }
 
-  // Call once on load
-  renderSectorTable();
+      // Call once on load
+      renderSectorTable();
 
-// --- Table toggle logic ---
-const toggleBtn = document.getElementById("toggleTableBtn");
-const tablePanel = document.getElementById("sectorTablePanel");
+      // --- Table toggle logic ---
+      const toggleBtn = document.getElementById("toggleTableBtn");
+      const tablePanel = document.getElementById("sectorTablePanel");
 
-toggleBtn.addEventListener("click", () => {
-  if (tablePanel.style.display === "none") {
-    tablePanel.style.display = "block";
-    toggleBtn.textContent = "Sector Info ▼";
-  } else {
-    tablePanel.style.display = "none";
-    toggleBtn.textContent = "Sector Info ▸";
-  }
-});
-
+      toggleBtn.addEventListener("click", () => {
+        if (tablePanel.style.display === "none") {
+          tablePanel.style.display = "block";
+          toggleBtn.textContent = "Sector Info ▼";
+        } else {
+          tablePanel.style.display = "none";
+          toggleBtn.textContent = "Sector Info ▸";
+        }
+      });
 
       function toggleSectorPanel() {
         const panel = document.getElementById("sectorOptions");
@@ -1982,17 +3305,8 @@ toggleBtn.addEventListener("click", () => {
         }
       }
 
-
-
-
-
-
-
-
-
-
-//----------------------------------------------------------------------------
-/*
+      //----------------------------------------------------------------------------
+ /*
     const baseMapLayer = L.tileLayer(
       'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
       {
@@ -2008,8 +3322,6 @@ toggleBtn.addEventListener("click", () => {
          opacity: 0.8
        }
      );
-
-
 */
       const baseMapLayer = L.tileLayer(
         "https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}",
@@ -2019,7 +3331,6 @@ toggleBtn.addEventListener("click", () => {
           opacity: 0.7, // Adjust transparency here (0 = fully transparent, 1 = opaque)
         }
       );
-
 
       const routeMap = {};
       for (const key in routes) {
@@ -2037,7 +3348,7 @@ toggleBtn.addEventListener("click", () => {
         "#17F5CB",
       ];
 
-let extraLabelMarkers = [];
+      let extraLabelMarkers = [];
 
       //-------------------------------------
       function expandRoute(routeSeq, airwaysDict) {
@@ -2083,7 +3394,7 @@ let extraLabelMarkers = [];
         }
         return expanded;
       }
-  //-------------------------------------------
+      //-------------------------------------------
       let currentRouteFilter = "Arr";
 
       function filterRoutes(type) {
@@ -2096,7 +3407,7 @@ let extraLabelMarkers = [];
           .classList.add("selected");
         populateRouteButtons();
       }
-  //-------------------------------------------
+      //-------------------------------------------
       function getSelectedSectors() {
         return Array.from(
           document.querySelectorAll(
@@ -2105,7 +3416,7 @@ let extraLabelMarkers = [];
         ).map((cb) => cb.value);
       }
 
-  //---------------------------------------
+      //---------------------------------------
       function populateRouteButtons() {
         const list = document.getElementById("routeList");
         list.innerHTML = "";
@@ -2181,14 +3492,13 @@ let extraLabelMarkers = [];
         }))
         .filter((pt) => pt.lat !== null && pt.lon !== null);
 
- 
       const map = L.map("map", {
         zoomControl: false,
         attributionControl: false,
         scrollWheelZoom: true,
         wheelPxPerZoomLevel: 200, // <-- Increase this for smoother zoom
-        zoomSnap: 0,              // 🔹 allow fractional zoom
-        zoomDelta: 0.3            // 🔹 smallest step = 0.1
+        zoomSnap: 0, //  allow fractional zoom
+        zoomDelta: 0.3, //  smallest step = 0.1
       }).setView(latlngs[0], 7);
 
       let mapLayerVisible = false;
@@ -2210,25 +3520,25 @@ let extraLabelMarkers = [];
         zoomValue.textContent = z.toFixed(1);
       });
 
+      document
+        .getElementById("toggleMapBtn")
+        .addEventListener("click", function () {
+          if (mapLayerVisible) {
+            map.removeLayer(baseMapLayer);
+            coordLabelColor = "white";
+          } else {
+            baseMapLayer.addTo(map);
+            coordLabelColor = "black";
+          }
 
-document.getElementById("toggleMapBtn").addEventListener("click", function () {
-  if (mapLayerVisible) {
-    map.removeLayer(baseMapLayer);
-    coordLabelColor = "white";
-  } else {
-    baseMapLayer.addTo(map);
-    coordLabelColor = "black";
-  }
+          document.querySelectorAll(".coord-label").forEach((label) => {
+            label.style.color = coordLabelColor;
+          });
 
-  document.querySelectorAll('.coord-label').forEach(label => {
-    label.style.color = coordLabelColor;
-  });
+          mapLayerVisible = !mapLayerVisible;
+        });
 
-  mapLayerVisible = !mapLayerVisible;
-});
-
-
-   //draw main FIR boundary------------------------
+      //draw main FIR boundary------------------------
       const polyline = L.polyline(latlngs, {
         color: "yellow",
         weight: 1.2,
@@ -2257,7 +3567,7 @@ document.getElementById("toggleMapBtn").addEventListener("click", function () {
         }).addTo(map);
       }
 
-      //draw airways between points---------------------------
+      //join airways between points-thin grey line--------------------------
 
       function drawairways() {
         Object.entries(airways).forEach(([routeName, pointNames]) => {
@@ -2281,437 +3591,491 @@ document.getElementById("toggleMapBtn").addEventListener("click", function () {
       }
 
       //draw fix triangles----------------------
-function renderTriangles() {
-  triangleLayers.forEach((layer) => map.removeLayer(layer));
-  triangleLayers = [];
+      function renderTriangles() {
+        triangleLayers.forEach((layer) => map.removeLayer(layer));
+        triangleLayers = [];
 
-  const zoom = map.getZoom();
-  const baseSize = 0.05;
-  const scale = Math.pow(2, 7 - zoom);
-  const size = baseSize * scale;
+        const zoom = map.getZoom();
+        const baseSize = 0.05;
+        const scale = Math.pow(2, 7 - zoom);
+        const size = baseSize * scale;
 
-  // Display triangles on extraPoints
-  extraLatLngs.forEach((pt) => {
-    const triangle = drawEquilateralTriangle([pt.lat, pt.lon], size);
-    triangleLayers.push(triangle);
-  });
-}
+        // Display triangles on extraPoints
+        extraLatLngs.forEach((pt) => {
+          const triangle = drawEquilateralTriangle([pt.lat, pt.lon], size);
+          triangleLayers.push(triangle);
+        });
+      }
 
-//---------------------------
-let holdingLayers = [];
-let holdingMarkers = [];
-let holdingsVisible = false;
+      //---------------------------
+      let holdingLayers = [];
+      let holdingMarkers = [];
+      let holdingsVisible = false;
 
-// -------------------------------------------------
-// Draw holding pattern
-// -------------------------------------------------
-function drawHoldingPattern(pointName, inboundHeadingDeg, legLengthNm = 10, turn = "right", turnRadiusNm = 2, limit = "") {
-  const pt = extraPoints[pointName];
-  if (!pt) {
-    console.warn("Point not found:", pointName);
-    return;
-  }
+      // -------------------------------------------------
+      // Draw holding pattern
+      // -------------------------------------------------
+      function drawHoldingPattern(
+        pointName,
+        inboundHeadingDeg,
+        legLengthNm = 10,
+        turn = "right",
+        turnRadiusNm = 2,
+        limit = ""
+      ) {
+        const pt = extraPoints[pointName];
+        if (!pt) {
+          console.warn("Point not found:", pointName);
+          return;
+        }
 
-  const lat = convertDMSToDecimal(pt[0]);
-  const lon = convertDMSToDecimal(pt[1]);
-  const fix = L.latLng(lat, lon);
+        const lat = convertDMSToDecimal(pt[0]);
+        const lon = convertDMSToDecimal(pt[1]);
+        const fix = L.latLng(lat, lon);
 
-  // Conversion helpers
-  const nmToDegLat = 1 / 60;
-  const nmToDegLon = (nm, lat) => nm / (60 * Math.cos(lat * Math.PI / 180));
+        // Conversion helpers
+        const nmToDegLat = 1 / 60;
+        const nmToDegLon = (nm, lat) =>
+          nm / (60 * Math.cos((lat * Math.PI) / 180));
 
-  // Headings
-  const inboundRad = inboundHeadingDeg * Math.PI / 180;
-  const outboundHeadingDeg = (inboundHeadingDeg + 180) % 360;
-  const outboundRad = outboundHeadingDeg * Math.PI / 180;
+        // Headings
+        const inboundRad = (inboundHeadingDeg * Math.PI) / 180;
+        const outboundHeadingDeg = (inboundHeadingDeg + 180) % 360;
+        const outboundRad = (outboundHeadingDeg * Math.PI) / 180;
 
-  // Turn direction factor (+1 for right/clockwise, -1 for left/counter-clockwise)
-  const dir = (turn.toLowerCase() === "right") ? 1 : -1;
+        // Turn direction factor (+1 for right/clockwise, -1 for left/counter-clockwise)
+        const dir = turn.toLowerCase() === "right" ? 1 : -1;
 
-  // Arc builder
-  function buildArc(center, startAngle, turnDir, radiusNm, steps = 20) {
-    const arcPts = [];
-    const step = (Math.PI / steps) * turnDir;
-    for (let i = 0; i <= steps; i++) {
-      const ang = startAngle + i * step;
-      const dx = Math.sin(ang) * radiusNm;
-      const dy = Math.cos(ang) * radiusNm;
-      const la = center.lat + dy * nmToDegLat;
-      const lo = center.lng + nmToDegLon(dx, center.lat);
-      arcPts.push([la, lo]);
-    }
-    return arcPts;
-  }
+        // Arc builder
+        function buildArc(center, startAngle, turnDir, radiusNm, steps = 20) {
+          const arcPts = [];
+          const step = (Math.PI / steps) * turnDir;
+          for (let i = 0; i <= steps; i++) {
+            const ang = startAngle + i * step;
+            const dx = Math.sin(ang) * radiusNm;
+            const dy = Math.cos(ang) * radiusNm;
+            const la = center.lat + dy * nmToDegLat;
+            const lo = center.lng + nmToDegLon(dx, center.lat);
+            arcPts.push([la, lo]);
+          }
+          return arcPts;
+        }
 
-  // --- Build racetrack ---
+        // --- Build racetrack ---
 
-  // 1. First 180° turn at fix
-  const perp_offset = (turn.toLowerCase() === "right") ? 90 : -90;
-  const perpDir = inboundHeadingDeg + perp_offset;
-  const perpRad = perpDir * Math.PI / 180;
+        // 1. First 180° turn at fix
+        const perp_offset = turn.toLowerCase() === "right" ? 90 : -90;
+        const perpDir = inboundHeadingDeg + perp_offset;
+        const perpRad = (perpDir * Math.PI) / 180;
 
-  const northNm = Math.cos(perpRad) * turnRadiusNm;
-  const eastNm = Math.sin(perpRad) * turnRadiusNm;
+        const northNm = Math.cos(perpRad) * turnRadiusNm;
+        const eastNm = Math.sin(perpRad) * turnRadiusNm;
 
-  const centerLat = lat + northNm * nmToDegLat;
-  const centerLng = lon + nmToDegLon(eastNm, lat);
-  const center = L.latLng(centerLat, centerLng);
+        const centerLat = lat + northNm * nmToDegLat;
+        const centerLng = lon + nmToDegLon(eastNm, lat);
+        const center = L.latLng(centerLat, centerLng);
 
-  const startAngle = perpRad + Math.PI;
-  const firstArc = buildArc(center, startAngle, dir, turnRadiusNm);
+        const startAngle = perpRad + Math.PI;
+        const firstArc = buildArc(center, startAngle, dir, turnRadiusNm);
 
-  // Arc end = start of outbound leg
-  const arcEnd = firstArc[firstArc.length - 1];
+        // Arc end = start of outbound leg
+        const arcEnd = firstArc[firstArc.length - 1];
 
-  // 2. Outbound leg (reciprocal)
-  const northNmOut = Math.cos(outboundRad) * legLengthNm;
-  const eastNmOut = Math.sin(outboundRad) * legLengthNm;
+        // 2. Outbound leg (reciprocal)
+        const northNmOut = Math.cos(outboundRad) * legLengthNm;
+        const eastNmOut = Math.sin(outboundRad) * legLengthNm;
 
-  const outboundEndLat = arcEnd[0] + northNmOut * nmToDegLat;
-  const outboundEndLng = arcEnd[1] + nmToDegLon(eastNmOut, arcEnd[0]);
-  const outboundEnd = [outboundEndLat, outboundEndLng];
+        const outboundEndLat = arcEnd[0] + northNmOut * nmToDegLat;
+        const outboundEndLng = arcEnd[1] + nmToDegLon(eastNmOut, arcEnd[0]);
+        const outboundEnd = [outboundEndLat, outboundEndLng];
 
-  // 3. Second 180° turn
-  const perpDir2 = outboundHeadingDeg + perp_offset;
-  const perpRad2 = perpDir2 * Math.PI / 180;
+        // 3. Second 180° turn
+        const perpDir2 = outboundHeadingDeg + perp_offset;
+        const perpRad2 = (perpDir2 * Math.PI) / 180;
 
-  const northNm2 = Math.cos(perpRad2) * turnRadiusNm;
-  const eastNm2 = Math.sin(perpRad2) * turnRadiusNm;
+        const northNm2 = Math.cos(perpRad2) * turnRadiusNm;
+        const eastNm2 = Math.sin(perpRad2) * turnRadiusNm;
 
-  const center2Lat = outboundEnd[0] + northNm2 * nmToDegLat;
-  const center2Lng = outboundEnd[1] + nmToDegLon(eastNm2, outboundEnd[0]);
-  const center2 = L.latLng(center2Lat, center2Lng);
+        const center2Lat = outboundEnd[0] + northNm2 * nmToDegLat;
+        const center2Lng = outboundEnd[1] + nmToDegLon(eastNm2, outboundEnd[0]);
+        const center2 = L.latLng(center2Lat, center2Lng);
 
-  const startAngle2 = perpRad2 + Math.PI;
-  const secondArc = buildArc(center2, startAngle2, dir, turnRadiusNm);
+        const startAngle2 = perpRad2 + Math.PI;
+        const secondArc = buildArc(center2, startAngle2, dir, turnRadiusNm);
 
-  // 4. Inbound leg → back to fix
-  const patternPts = [...firstArc, outboundEnd, ...secondArc.slice(1), [fix.lat, fix.lng]];
+        // 4. Inbound leg → back to fix
+        const patternPts = [
+          ...firstArc,
+          outboundEnd,
+          ...secondArc.slice(1),
+          [fix.lat, fix.lng],
+        ];
 
-  // --- Draw holding pattern line ---
-  const holdLine = L.polyline(patternPts, {
-    color: "red",
-    weight: 2,
-    dashArray: "6 4"
-  }).addTo(map);
-  holdingLayers.push(holdLine);
+        // --- Draw holding pattern line ---
+        const holdLine = L.polyline(patternPts, {
+          color: "red",
+          weight: 2,
+          dashArray: "6 4",
+        }).addTo(map);
+        holdingLayers.push(holdLine);
 
-  // --- hold area marker with tooltip ---
-  const fixMarker = L.circleMarker(fix, {
-    radius: 4, color: "yellow", weight: 2, fillColor: "black", fillOpacity: 1
-  }).bindTooltip(
-    `<b>${pointName}</b> - hold<br>Outbound: ${outboundHeadingDeg}° (${turn})<br>
+        // --- hold area marker with tooltip ---
+        const fixMarker = L.circleMarker(fix, {
+          radius: 4,
+          color: "yellow",
+          weight: 2,
+          fillColor: "black",
+          fillOpacity: 1,
+        })
+          .bindTooltip(
+            `<b>${pointName}</b> - hold<br>Outbound: ${outboundHeadingDeg}° (${turn})<br>
      Limit: ${limit || "N/A"}`,
-    { 
-      permanent: true,
-      direction: "top",
-      offset: [-40, -40],
-      className: "holding-tooltip"
-    }
-  ).addTo(map);
-  holdingLayers.push(fixMarker);
-  holdingMarkers.push(fixMarker);
+            {
+              permanent: true,
+              direction: "top",
+              offset: [-40, -40],
+              className: "holding-tooltip",
+            }
+          )
+          .addTo(map);
+        holdingLayers.push(fixMarker);
+        holdingMarkers.push(fixMarker);
 
-  // --- Arrow on outbound leg ---
-  const midOutboundLat = (arcEnd[0] + outboundEnd[0]) / 2;
-  const midOutboundLng = (arcEnd[1] + outboundEnd[1]) / 2;
-  const midOutboundPoint = L.latLng(midOutboundLat, midOutboundLng);
+        // --- Arrow on outbound leg ---
+        const midOutboundLat = (arcEnd[0] + outboundEnd[0]) / 2;
+        const midOutboundLng = (arcEnd[1] + outboundEnd[1]) / 2;
+        const midOutboundPoint = L.latLng(midOutboundLat, midOutboundLng);
 
-  const arrowRotation = outboundHeadingDeg; // arrow pointing in outbound direction
+        const arrowRotation = outboundHeadingDeg; // arrow pointing in outbound direction
 
-  const arrowIcon = L.divIcon({
-    className: "",
-    iconSize: [16, 16],
-    iconAnchor: [8, 8],
-    html: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+        const arrowIcon = L.divIcon({
+          className: "",
+          iconSize: [16, 16],
+          iconAnchor: [8, 8],
+          html: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
                  width="16" height="16"
                  style="transform: rotate(${arrowRotation}deg); fill: yellow;">
              <path d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z"/>
-           </svg>`
-  });
+           </svg>`,
+        });
 
-  // --- Arrow on inbound leg ---
-  const arc2End = secondArc[secondArc.length - 1]; // end of 2nd arc
-  const inboundMidLat = (arc2End[0] + fix.lat) / 2;
-  const inboundMidLng = (arc2End[1] + fix.lng) / 2;
-  const inboundMidPoint = L.latLng(inboundMidLat, inboundMidLng);
+        // --- Arrow on inbound leg ---
+        const arc2End = secondArc[secondArc.length - 1]; // end of 2nd arc
+        const inboundMidLat = (arc2End[0] + fix.lat) / 2;
+        const inboundMidLng = (arc2End[1] + fix.lng) / 2;
+        const inboundMidPoint = L.latLng(inboundMidLat, inboundMidLng);
 
-  const inboundRotation = inboundHeadingDeg; // arrow pointing in inbound direction
+        const inboundRotation = inboundHeadingDeg; // arrow pointing in inbound direction
 
-  const inboundArrowIcon = L.divIcon({
-    className: "",
-    iconSize: [16, 16],
-    iconAnchor: [8, 8],
-    html: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+        const inboundArrowIcon = L.divIcon({
+          className: "",
+          iconSize: [16, 16],
+          iconAnchor: [8, 8],
+          html: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
                  width="16" height="16"
                  style="transform: rotate(${inboundRotation}deg); fill: yellow;">
              <path d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z"/>
-           </svg>`
-  });
+           </svg>`,
+        });
 
-  const inboundArrowMarker = L.marker(inboundMidPoint, { icon: inboundArrowIcon }).addTo(map);
-  holdingLayers.push(inboundArrowMarker);
+        const inboundArrowMarker = L.marker(inboundMidPoint, {
+          icon: inboundArrowIcon,
+        }).addTo(map);
+        holdingLayers.push(inboundArrowMarker);
 
-
-  const arrowMarker = L.marker(midOutboundPoint, { icon: arrowIcon }).addTo(map);
-  holdingLayers.push(arrowMarker);
-}
-// Draw/Clear all holdings
-// -------------------------------------------------
-function drawAllHoldings() {
-  holdingLibrary.forEach(h => drawHoldingPattern(h.point, h.heading, h.leg, h.turn, 2, h.limit));
-}
-
-function clearAllHoldings() {
-  holdingLayers.forEach(l => map.removeLayer(l));
-  holdingLayers = [];
-  holdingMarkers = [];
-}
-// Toggle button
-// -------------------------------------------------
-document.getElementById("showHoldingsBtn").addEventListener("click", function() {
-  if (holdingsVisible) {
-    clearAllHoldings();
-    this.textContent = "Holdings ▸";
-  } else {
-    drawAllHoldings();
-    this.textContent = "Holdings ▼";
-  }
-  holdingsVisible = !holdingsVisible;
-});
-
-
-//areas selection pannel------------------------------
-
-  function toggleAreasPanel() {
-    const panel = document.getElementById("areasCheckboxes");
-    panel.style.display = (panel.style.display === "none") ? "block" : "none";
-  }
-
-
-  function nmToMeters(nm) {
-   return nm * 1852;
-  }
-
-  // Create layer groups
-  const prohibitated = L.layerGroup();
-  const restricted = L.layerGroup();
-  const danger = L.layerGroup();
-  const training = L.layerGroup();
-
-  // ✅ Example using your convertDMSToDecimal function
-
-  function dmsToLatLng(latDMS, lonDMS) {
-    return [
-      convertDMSToDecimal(latDMS),
-      convertDMSToDecimal(lonDMS)
-    ];
-  }
-
-
-
-// Function to update details panel
-function showAreaDetails(area) {
-  if (!document.getElementById("toggleDetails").checked) return;
-
-  document.getElementById("areaName").textContent = area.shapeName;
-  document.getElementById("areaLimit").textContent = "Limit: " + (area.limit || "N/A");
-  document.getElementById("areaType").textContent = "Type: " + (area.type || "N/A");
-  document.getElementById("areaDetailsPanel").style.display = "block";
-}
-
-// Hide details if checkbox off
-document.getElementById("toggleDetails").addEventListener("change", e => {
-  document.getElementById("areaDetailsPanel").style.display = e.target.checked ? "block" : "none";
-});
-
-
-function renderAreas(areaList, layerGroup, color) {
-  areaList.forEach(area => {
-    let shape;
-    let center;
-
-    switch (area.shapeType) {
-      case "circle":
-        if (!Array.isArray(area.coords) || area.coords.length !== 2) {
-          console.error(`Invalid coords for circle area "${area.shapeName}": must be an array [latDMS, lonDMS]`, area);
-          return;
-        }
-        center = dmsToLatLng(...area.coords);
-        if (typeof area.radiusNm !== 'number') {
-          console.error(`Invalid radiusNm for circle area "${area.shapeName}": must be a number`, area);
-          return;
-        }
-        shape = L.circle(center, {
-          radius: nmToMeters(area.radiusNm),
-          color,
-          weight: 1  // Reduced thickness
-        }).addTo(layerGroup);
-        break;
-
-      case "polygon":
-        if (!Array.isArray(area.coords) || area.coords.length < 3 || !area.coords.every(coord => Array.isArray(coord) && coord.length === 2)) {
-          console.error(`Invalid coords for polygon area "${area.shapeName}": must be an array of at least 3 [latDMS, lonDMS] arrays`, area);
-          return;
-        }
-        const latlngs = area.coords.map(([lat, lon]) => dmsToLatLng(lat, lon));
-        shape = L.polygon(latlngs, { color, weight: 1 }).addTo(layerGroup);
-        center = shape.getBounds().getCenter();
-        break;
-
-      case "rectangle":
-        if (!Array.isArray(area.corner1) || area.corner1.length !== 2 || !Array.isArray(area.corner2) || area.corner2.length !== 2) {
-          console.error(`Invalid corner1 or corner2 for rectangle area "${area.shapeName}": each must be an array [latDMS, lonDMS]`, area);
-          return;
-        }
-        const corner1 = dmsToLatLng(...area.corner1);
-        const corner2 = dmsToLatLng(...area.corner2);
-        shape = L.rectangle([corner1, corner2], { color,weight: 1}).addTo(layerGroup);
-        center = shape.getBounds().getCenter();
-        break;
-
-      default:
-        console.error(`Unknown shapeType "${area.shapeType}" for area "${area.shapeName}"`, area);
-        return;
-    }
-
-    if (center) {
-      // Label
-      L.marker(center, {
-        icon: L.divIcon({
-          className: "area-label",
-          html: `<div style="color:${color}; font-weight:bold;">${area.shapeName}</div>`,
-          iconSize: [0, 0]
-        })
-      }).addTo(layerGroup);
-
-      // Details panel on click
-      shape.on("click", () => showAreaDetails(area, color));
-    }
-  });
-}
-
-  renderAreas(prohibitatedAreas, prohibitated, "#FFFF66"); //yellow
-  renderAreas(restrictedAreas, restricted, "#FEB476");//orange
-  renderAreas(dangerAreas, danger, "#FFBDFF");//pink
-  renderAreas(trainingAreas, training, "#BDEEEF");
-
-
-function showAreaDetails(area, color) {
-  const detailsCheckbox = document.getElementById('toggleDetails');
-  if (!detailsCheckbox.checked) {
-    return;  // Do not show if "Info" checkbox is not checked
-  }
-  
-  const panel = document.getElementById('areaDetailsPanel');
-  document.getElementById('areaName').textContent = area.shapeName;
-  document.getElementById('areaLimit').textContent = area.limit;
-  document.getElementById('areaType').textContent = area.type;
-  panel.style.color = color;  // Match the drawn area color
-  panel.style.display = 'block';
-}
-
-  // Toggle logic for area checkboxes
-  document.getElementById("toggleProhibitated").addEventListener("change", e => {
-    if (e.target.checked) map.addLayer(prohibitated);
-    else map.removeLayer(prohibitated);
-  });
-
-  document.getElementById("toggleRestricted").addEventListener("change", e => {
-    if (e.target.checked) map.addLayer(restricted);
-    else map.removeLayer(restricted);
-  });
-
-  document.getElementById("toggleDanger").addEventListener("change", e => {
-    if (e.target.checked) map.addLayer(danger);
-    else map.removeLayer(danger);
-  });
-
-  document.getElementById("toggleTraining").addEventListener("change", e => {
-    if (e.target.checked) map.addLayer(training);
-    else map.removeLayer(training);
-  });
-
-
-
-// --- Make sector table -------------------------------------
-function makeDraggable(el) {
-  let offsetX, offsetY, isDown = false;
-
-  el.addEventListener("mousedown", (e) => {
-    isDown = true;
-    offsetX = el.offsetLeft - e.clientX;
-    offsetY = el.offsetTop - e.clientY;
-  });
-
-  document.addEventListener("mouseup", () => isDown = false);
-
-  document.addEventListener("mousemove", (e) => {
-    if (isDown) {
-      el.style.left = (e.clientX + offsetX) + "px";
-      el.style.top  = (e.clientY + offsetY) + "px";
-      el.style.bottom = "auto"; // prevent snapping back
-    }
-  });
-}
-
-// Enable drag on sectorTablePanel
-makeDraggable(document.getElementById("sectorTablePanel"));
-
-/*
-Object.entries(extraPoints).forEach(([name, [latDMS, lonDMS]]) => {
-  const lat = convertDMSToDecimal(latDMS);
-  const lon = convertDMSToDecimal(lonDMS);
-
-  if (lat !== null && lon !== null) {
-    const labelMarker = L.marker([lat, lon], {
-      icon: L.divIcon({
-        className: 'coord-label',
-        direction: "top",
-        html: `<span>${name}</span>`,
-        iconSize: [0, 0],
-        iconAnchor: [0, 0],
-      })
-    }).addTo(map);
-
-    extraLabelMarkers.push(labelMarker);
-  }
-});
-*/
-
-let coordLabelColor = "white"; 
-let coordsVisible = true;
-
-Object.entries(extraPoints).forEach(([name, [latDMS, lonDMS]]) => {
-  const lat = convertDMSToDecimal(latDMS);
-  const lon = convertDMSToDecimal(lonDMS);
-
-  if (lat !== null && lon !== null) {
-    const label = L.tooltip({
-      permanent: true,
-      direction: "top",
-      offset: [7, -1],
-      className: "coord-label"
-    })
-    .setLatLng([lat, lon])
-    .setContent(name)
-    .addTo(map);
-
-    // Push to global list for toggle control
-    extraLabelMarkers.push(label);
-    setExtraLabelColor("white");
-
-    // Wait until the element is rendered, then apply styles
-    setTimeout(() => {
-      const el = label.getElement();
-      if (el) {
-        el.style.color = coordLabelColor || "white";
-        el.style.opacity = coordsVisible ? "1" : "0";  // ← Show/hide based on toggle state
+        const arrowMarker = L.marker(midOutboundPoint, {
+          icon: arrowIcon,
+        }).addTo(map);
+        holdingLayers.push(arrowMarker);
       }
-    }, 0);
-  }
-});
+      // Draw/Clear all holdings ------------------------------------------------
+      function drawAllHoldings() {
+        holdingLibrary.forEach((h) =>
+          drawHoldingPattern(h.point, h.heading, h.leg, h.turn, 2, h.limit)
+        );
+      }
 
+      function clearAllHoldings() {
+        holdingLayers.forEach((l) => map.removeLayer(l));
+        holdingLayers = [];
+        holdingMarkers = [];
+      }
+
+      // Toggle button for hold are visible ------------
+      document
+        .getElementById("showHoldingsBtn")
+        .addEventListener("click", function () {
+          if (holdingsVisible) {
+            clearAllHoldings();
+            this.textContent = "Holdings ▸";
+          } else {
+            drawAllHoldings();
+            this.textContent = "Holdings ▼";
+          }
+          holdingsVisible = !holdingsVisible;
+        });
+
+      //danger areas selection pannel------------------------------
+      let areasVisible = false;
+
+      document
+        .getElementById("toggleAreasBtn")
+        .addEventListener("click", function () {
+          const areasPanel = document.getElementById("areasPanel");
+          if (areasVisible) {
+            areasPanel.classList.remove("active");
+            this.textContent = "Areas ▸";
+          } else {
+            areasPanel.classList.add("active");
+            this.textContent = "Areas ▼";
+          }
+          areasVisible = !areasVisible;
+        });
+
+      function nmToMeters(nm) {
+        return nm * 1852;
+      }
+
+      // Create layer groups
+      const prohibitated = L.layerGroup();
+      const restricted = L.layerGroup();
+      const danger = L.layerGroup();
+      const training = L.layerGroup();
+
+      // ✅ Example using your convertDMSToDecimal function
+
+      function dmsToLatLng(latDMS, lonDMS) {
+        return [convertDMSToDecimal(latDMS), convertDMSToDecimal(lonDMS)];
+      }
+
+      // Function to update details panel
+      function normalize(str = "") {
+        return str.trim().replace(/\n/g, "<br>");
+      }
+
+      function showAreaDetails(area) {
+        if (!document.getElementById("toggleDetails").checked) return;
+
+        document.getElementById("areaName").innerHTML = area.shapeName;
+        document.getElementById("areaLimit").innerHTML = normalize(area.limit);
+        document.getElementById("areaType").innerHTML = normalize(area.type);
+        document.getElementById("areaDetailsPanel").style.display = "block";
+      }
+
+      // Hide details if checkbox off
+      document
+        .getElementById("toggleDetails")
+        .addEventListener("change", (e) => {
+          document.getElementById("areaDetailsPanel").style.display = e.target
+            .checked
+            ? "block"
+            : "none";
+        });
+
+      function renderAreas(areaList, layerGroup, color) {
+        areaList.forEach((area) => {
+          let shape;
+          let center;
+
+          switch (area.shapeType) {
+            case "circle":
+              if (!Array.isArray(area.coords) || area.coords.length !== 2) {
+                console.error(
+                  `Invalid coords for circle area "${area.shapeName}": must be an array [latDMS, lonDMS]`,
+                  area
+                );
+                return;
+              }
+              center = dmsToLatLng(...area.coords);
+              if (typeof area.radiusNm !== "number") {
+                console.error(
+                  `Invalid radiusNm for circle area "${area.shapeName}": must be a number`,
+                  area
+                );
+                return;
+              }
+              shape = L.circle(center, {
+                radius: nmToMeters(area.radiusNm),
+                color,
+                weight: 1, // Reduced thickness
+              }).addTo(layerGroup);
+              break;
+
+            case "polygon":
+              if (
+                !Array.isArray(area.coords) ||
+                area.coords.length < 3 ||
+                !area.coords.every(
+                  (coord) => Array.isArray(coord) && coord.length === 2
+                )
+              ) {
+                console.error(
+                  `Invalid coords for polygon area "${area.shapeName}": must be an array of at least 3 [latDMS, lonDMS] arrays`,
+                  area
+                );
+                return;
+              }
+              const latlngs = area.coords.map(([lat, lon]) =>
+                dmsToLatLng(lat, lon)
+              );
+              shape = L.polygon(latlngs, { color, weight: 1 }).addTo(
+                layerGroup
+              );
+              center = shape.getBounds().getCenter();
+              break;
+
+            case "rectangle":
+              if (
+                !Array.isArray(area.corner1) ||
+                area.corner1.length !== 2 ||
+                !Array.isArray(area.corner2) ||
+                area.corner2.length !== 2
+              ) {
+                console.error(
+                  `Invalid corner1 or corner2 for rectangle area "${area.shapeName}": each must be an array [latDMS, lonDMS]`,
+                  area
+                );
+                return;
+              }
+              const corner1 = dmsToLatLng(...area.corner1);
+              const corner2 = dmsToLatLng(...area.corner2);
+              shape = L.rectangle([corner1, corner2], {
+                color,
+                weight: 1,
+              }).addTo(layerGroup);
+              center = shape.getBounds().getCenter();
+              break;
+
+            default:
+              console.error(
+                `Unknown shapeType "${area.shapeType}" for area "${area.shapeName}"`,
+                area
+              );
+              return;
+          }
+
+          if (center) {
+            // Label
+            L.marker(center, {
+              icon: L.divIcon({
+                className: "area-label",
+                html: `<div style="color:${color}; font-weight:bold;">${area.shapeName}</div>`,
+                iconSize: [0, 0],
+              }),
+            }).addTo(layerGroup);
+
+            // Details panel on click
+            shape.on("click", () => showAreaDetails(area, color));
+          }
+        });
+      }
+
+      renderAreas(prohibitatedAreas, prohibitated, "#FFFF66"); //yellow
+      renderAreas(restrictedAreas, restricted, "#FEB476"); //orange
+      renderAreas(dangerAreas, danger, "#FFBDFF"); //pink
+      renderAreas(trainingAreas, training, "#BDEEEF");
+
+      function showAreaDetails(area, color) {
+        const detailsCheckbox = document.getElementById("toggleDetails");
+        if (!detailsCheckbox.checked) {
+          return; // Do not show if "Info" checkbox is not checked
+        }
+
+        const panel = document.getElementById("areaDetailsPanel");
+        document.getElementById("areaName").textContent = area.shapeName;
+        document.getElementById("areaLimit").textContent = area.limit;
+        document.getElementById("areaType").textContent = area.type;
+        panel.style.color = color; // Match the drawn area color
+        panel.style.display = "block";
+      }
+
+      // Toggle logic for area checkboxes
+      document
+        .getElementById("toggleProhibitated")
+        .addEventListener("change", (e) => {
+          if (e.target.checked) map.addLayer(prohibitated);
+          else map.removeLayer(prohibitated);
+        });
+
+      document
+        .getElementById("toggleRestricted")
+        .addEventListener("change", (e) => {
+          if (e.target.checked) map.addLayer(restricted);
+          else map.removeLayer(restricted);
+        });
+
+      document
+        .getElementById("toggleDanger")
+        .addEventListener("change", (e) => {
+          if (e.target.checked) map.addLayer(danger);
+          else map.removeLayer(danger);
+        });
+
+      document
+        .getElementById("toggleTraining")
+        .addEventListener("change", (e) => {
+          if (e.target.checked) map.addLayer(training);
+          else map.removeLayer(training);
+        });
+
+      // --- Make sector table -------------------------------------
+      function makeDraggable(el) {
+        let offsetX,
+          offsetY,
+          isDown = false;
+
+        el.addEventListener("mousedown", (e) => {
+          isDown = true;
+          offsetX = el.offsetLeft - e.clientX;
+          offsetY = el.offsetTop - e.clientY;
+        });
+
+        document.addEventListener("mouseup", () => (isDown = false));
+
+        document.addEventListener("mousemove", (e) => {
+          if (isDown) {
+            el.style.left = e.clientX + offsetX + "px";
+            el.style.top = e.clientY + offsetY + "px";
+            el.style.bottom = "auto"; // prevent snapping back
+          }
+        });
+      }
+
+      // Enable drag on sectorTablePanel
+      makeDraggable(document.getElementById("sectorTablePanel"));
+
+      let coordLabelColor = "white";
+      let coordsVisible = true;
+
+      Object.entries(extraPoints).forEach(([name, [latDMS, lonDMS]]) => {
+        const lat = convertDMSToDecimal(latDMS);
+        const lon = convertDMSToDecimal(lonDMS);
+
+        if (lat !== null && lon !== null) {
+          const label = L.tooltip({
+            permanent: true,
+            direction: "top",
+            offset: [7, -1],
+            className: "coord-label",
+          })
+            .setLatLng([lat, lon])
+            .setContent(name)
+            .addTo(map);
+
+          // Push to global list for toggle control
+          extraLabelMarkers.push(label);
+          setExtraLabelColor("white");
+
+          // Wait until the element is rendered, then apply styles
+          setTimeout(() => {
+            const el = label.getElement();
+            if (el) {
+              el.style.color = coordLabelColor || "white";
+              el.style.opacity = coordsVisible ? "1" : "0"; // ← Show/hide based on toggle state
+            }
+          }, 0);
+        }
+      });
 
       let drawnRouteLayers = [];
 
@@ -2779,29 +4143,31 @@ Object.entries(extraPoints).forEach(([name, [latDMS, lonDMS]]) => {
         displayExpandedRoute(from, to, routeKey);
       }
 
-function displayExpandedRouteByKey(routeKey) {
-  const [from, to] = routeKey.split("-");
-  const routeSteps = routes[routeKey];
+      function displayExpandedRouteByKey(routeKey) {
+        const [from, to] = routeKey.split("-");
+        const routeSteps = routes[routeKey];
 
-  if (!routeSteps) {
-    alert("Route not found!");
-    return;
-  }
+        if (!routeSteps) {
+          alert("Route not found!");
+          return;
+        }
 
-  // Inject into routeMap for reuse
-  if (!routeMap[from]) routeMap[from] = {};
-  routeMap[from][to] = routeSteps;
+        // Inject into routeMap for reuse
+        if (!routeMap[from]) routeMap[from] = {};
+        routeMap[from][to] = routeSteps;
 
-  // Update existing route tooltip
-  //document.getElementById("routeTooltip").textContent = `Route: ${routeSteps.join(" ")}`;
+        // Update existing route tooltip
+        //document.getElementById("routeTooltip").textContent = `Route: ${routeSteps.join(" ")}`;
 
-  // Expand the route for the new tooltip
-  const expandedRoute = expandRoute(routeSteps, airways);
-  document.getElementById("expandedRouteTooltip").textContent = `${expandedRoute.join(" ")}`;
+        // Expand the route for the new tooltip
+        const expandedRoute = expandRoute(routeSteps, airways);
+        document.getElementById(
+          "expandedRouteTooltip"
+        ).textContent = `${expandedRoute.join(" ")}`;
 
-  // Call the original function to display the route
-  displayExpandedRoute(from, to, routeKey);
-}
+        // Call the original function to display the route
+        displayExpandedRoute(from, to, routeKey);
+      }
 
       //------------------------------------------
       function displayExpandedRoute(from, to, routeKey) {
@@ -2914,9 +4280,7 @@ function displayExpandedRouteByKey(routeKey) {
                 opacity: 3.5,
               })
                 .setLatLng([midLat, midLng])
-                .setContent(
-                  `<span style="color:black; font-weight:bold;">${airway}</span>`
-                )
+                .setContent(`<span style=font-weight:bold;">${airway}</span>`)
                 .addTo(map);
 
               drawnRouteLayers.push(label);
@@ -2982,6 +4346,71 @@ function displayExpandedRouteByKey(routeKey) {
 
           const arrowMarker = L.marker(lastCoord, { icon: arrow }).addTo(map);
           drawnRouteLayers.push(arrowMarker);
+        }
+
+        // Remove old remarks div if present
+        let oldDiv = document.getElementById("remarksOverlay");
+        if (oldDiv) {
+          oldDiv.remove();
+        }
+
+        // --- Show CFL/XFL/Remarks tooltips if defined -----------------
+        if (CFL_XFL[routeKey]) {
+          const { CFL, XFL, REMARKS } = CFL_XFL[routeKey];
+
+          // Beginning of route
+          const firstPoint = extraPoints[routeSteps[0]];
+          if (firstPoint && CFL) {
+            const coord = [
+              convertDMSToDecimal(firstPoint[0]),
+              convertDMSToDecimal(firstPoint[1]),
+            ];
+            const cflTip = L.tooltip({
+              permanent: true,
+              direction: "top",
+              offset: [0, -30],
+              className: "route-extra-label",
+            })
+              .setLatLng(coord)
+              .setContent(`CFL: ${CFL}`)
+              .addTo(map);
+            drawnRouteLayers.push(cflTip);
+          }
+
+          // End of route
+          const lastPoint = extraPoints[routeSteps.at(-1)];
+          if (lastPoint && XFL) {
+            const coord = [
+              convertDMSToDecimal(lastPoint[0]),
+              convertDMSToDecimal(lastPoint[1]),
+            ];
+            const xflTip = L.tooltip({
+              permanent: true,
+              direction: "top",
+              offset: [0, -30],
+              className: "route-extra-label",
+            })
+              .setLatLng(coord)
+              .setContent(`XFL: ${XFL}`)
+              .addTo(map);
+            drawnRouteLayers.push(xflTip);
+          }
+
+          if (REMARKS) {
+            // Create new overlay
+            const div = document.createElement("div");
+            div.id = "remarksOverlay";
+
+            div.innerHTML = `* ${REMARKS}`;
+
+            // Append to map container
+            map.getContainer().appendChild(div);
+
+            // Track it for cleanup with the route
+            drawnRouteLayers.push({
+              remove: () => div.remove(),
+            });
+          }
         }
       }
 
@@ -3054,123 +4483,132 @@ function displayExpandedRouteByKey(routeKey) {
         const activeSectorCodes = new Set(); // 🔹 Track which sectors are active
         const showColorsCheckbox = document.getElementById("showSectorColors");
 
-showColorsCheckbox.addEventListener("change", () => {
-  Object.keys(sectorLayers).forEach((code) => {
-    if (sectorLayers[code].polygon) map.removeLayer(sectorLayers[code].polygon);
-    if (sectorLayers[code].label) map.removeLayer(sectorLayers[code].label);
-    delete sectorLayers[code];
-  });
-
-  if (showColorsCheckbox.checked) {
-    activeSectorCodes.forEach((code) => {
-      if (sectorPolygons[code]) {
-        const color = sectorColors[code] || "white";
-        const polygon = L.polygon(sectorPolygons[code], {
-          color,
-          weight: 1.5,
-          dashArray: "3 6",
-          fillColor: color,
-          fillOpacity: 0.2,
-          opacity: 0.9,
-        }).addTo(map);
-
-        // Calculate simple centroid (average of coordinates)
-        let sumLat = 0, sumLng = 0;
-        sectorPolygons[code].forEach(([lat, lng]) => {
-          sumLat += lat;
-          sumLng += lng;
-        });
-        const centerLat = sumLat / sectorPolygons[code].length;
-        const centerLng = sumLng / sectorPolygons[code].length;
-
-        // Add label at center
-        const label = L.tooltip({
-          permanent: true,
-          direction: 'center',
-          className: 'sector-label',
-          offset: [0, 0],
-        }).setLatLng([centerLat, centerLng])
-          .setContent(code)
-          .addTo(map);
-
-        sectorLayers[code] = { polygon, label };
-      }
-    });
-  }
-});
-
-document
-  .querySelectorAll(
-    '#sectorOptions input[type="checkbox"]:not(#showSectorColors)'
-  )
-  .forEach((cb) => {
-    cb.addEventListener("change", () => {
-      const code = cb.value;
-
-      if (cb.checked) {
-        activeSectorCodes.add(code);
-        if (
-          showColorsCheckbox.checked &&
-          sectorPolygons[code] &&
-          !sectorLayers[code]
-        ) {
-          const color = sectorColors[code] || "white";
-          const polygon = L.polygon(sectorPolygons[code], {
-            color,
-            weight: 1.5,
-            dashArray: "3 6",
-            fillColor: color,
-            fillOpacity: 0.2,
-            opacity: 0.9,
-          }).addTo(map);
-
-          // Calculate simple centroid (average of coordinates)
-          let sumLat = 0, sumLng = 0;
-          sectorPolygons[code].forEach(([lat, lng]) => {
-            sumLat += lat;
-            sumLng += lng;
+        showColorsCheckbox.addEventListener("change", () => {
+          Object.keys(sectorLayers).forEach((code) => {
+            if (sectorLayers[code].polygon)
+              map.removeLayer(sectorLayers[code].polygon);
+            if (sectorLayers[code].label)
+              map.removeLayer(sectorLayers[code].label);
+            delete sectorLayers[code];
           });
-          const centerLat = sumLat / sectorPolygons[code].length;
-          const centerLng = sumLng / sectorPolygons[code].length;
 
-          // Add label at center
-          const label = L.tooltip({
-            permanent: true,
-            direction: 'center',
-            className: 'sector-label',
-            offset: [0, 0],
-          }).setLatLng([centerLat, centerLng])
-            .setContent(code)
-            .addTo(map);
+          if (showColorsCheckbox.checked) {
+            activeSectorCodes.forEach((code) => {
+              if (sectorPolygons[code]) {
+                const color = sectorColors[code] || "white";
+                const polygon = L.polygon(sectorPolygons[code], {
+                  color,
+                  weight: 1.5,
+                  dashArray: "3 6",
+                  fillColor: color,
+                  fillOpacity: 0.2,
+                  opacity: 0.9,
+                }).addTo(map);
 
-          sectorLayers[code] = { polygon, label };
-        }
-      } else {
-        activeSectorCodes.delete(code);
-        if (sectorLayers[code]) {
-          if (sectorLayers[code].polygon) map.removeLayer(sectorLayers[code].polygon);
-          if (sectorLayers[code].label) map.removeLayer(sectorLayers[code].label);
-          delete sectorLayers[code];
-        }
-      }
-    });
-  });
+                // Calculate simple centroid (average of coordinates)
+                let sumLat = 0,
+                  sumLng = 0;
+                sectorPolygons[code].forEach(([lat, lng]) => {
+                  sumLat += lat;
+                  sumLng += lng;
+                });
+                const centerLat = sumLat / sectorPolygons[code].length;
+                const centerLng = sumLng / sectorPolygons[code].length;
 
-let coordsVisible = true;
+                // Add label at center
+                const label = L.tooltip({
+                  permanent: true,
+                  direction: "center",
+                  className: "sector-label",
+                  offset: [0, 0],
+                })
+                  .setLatLng([centerLat, centerLng])
+                  .setContent(code)
+                  .addTo(map);
 
-document.getElementById("toggleWaypointsBtn").addEventListener("click", function () {
-  coordsVisible = !coordsVisible;
+                sectorLayers[code] = { polygon, label };
+              }
+            });
+          }
+        });
 
-  extraLabelMarkers.forEach(label => {
-    const el = label.getElement();
-    if (el) {
-      el.style.opacity = coordsVisible ? "1" : "0";
-    }
-  });
+        document
+          .querySelectorAll(
+            '#sectorOptions input[type="checkbox"]:not(#showSectorColors)'
+          )
+          .forEach((cb) => {
+            cb.addEventListener("change", () => {
+              const code = cb.value;
 
-  this.textContent = coordsVisible ? "Names: ON" : "Names: OFF";
-});
+              if (cb.checked) {
+                activeSectorCodes.add(code);
+                if (
+                  showColorsCheckbox.checked &&
+                  sectorPolygons[code] &&
+                  !sectorLayers[code]
+                ) {
+                  const color = sectorColors[code] || "white";
+                  const polygon = L.polygon(sectorPolygons[code], {
+                    color,
+                    weight: 1.5,
+                    dashArray: "3 6",
+                    fillColor: color,
+                    fillOpacity: 0.2,
+                    opacity: 0.9,
+                  }).addTo(map);
 
+                  // Calculate simple centroid (average of coordinates)
+                  let sumLat = 0,
+                    sumLng = 0;
+                  sectorPolygons[code].forEach(([lat, lng]) => {
+                    sumLat += lat;
+                    sumLng += lng;
+                  });
+                  const centerLat = sumLat / sectorPolygons[code].length;
+                  const centerLng = sumLng / sectorPolygons[code].length;
+
+                  // Add label at center
+                  const label = L.tooltip({
+                    permanent: true,
+                    direction: "center",
+                    className: "sector-label",
+                    offset: [0, 0],
+                  })
+                    .setLatLng([centerLat, centerLng])
+                    .setContent(code)
+                    .addTo(map);
+
+                  sectorLayers[code] = { polygon, label };
+                }
+              } else {
+                activeSectorCodes.delete(code);
+                if (sectorLayers[code]) {
+                  if (sectorLayers[code].polygon)
+                    map.removeLayer(sectorLayers[code].polygon);
+                  if (sectorLayers[code].label)
+                    map.removeLayer(sectorLayers[code].label);
+                  delete sectorLayers[code];
+                }
+              }
+            });
+          });
+
+        let coordsVisible = true;
+
+        document
+          .getElementById("toggleWaypointsBtn")
+          .addEventListener("click", function () {
+            coordsVisible = !coordsVisible;
+
+            extraLabelMarkers.forEach((label) => {
+              const el = label.getElement();
+              if (el) {
+                el.style.opacity = coordsVisible ? "1" : "0";
+              }
+            });
+
+            this.textContent = coordsVisible ? "Names: ON" : "Names: OFF";
+          });
 
         // High group toggle-------------------
         document
@@ -3192,9 +4630,6 @@ document.getElementById("toggleWaypointsBtn").addEventListener("click", function
         map.on("zoomend", renderTriangles);
         map.fitBounds(polyline.getBounds());
       };
-
     </script>
   </body>
 </html>
-
-
