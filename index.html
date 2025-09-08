@@ -55,32 +55,34 @@
 
        /* Menu bar styling */
        .map-menu-bar {
-         position: absolute;
-         top: 1px;
-         left: 3px;
+         position: fixed;
+         top: 0px;
+         left: 0px;
+         right: 0px;
          z-index: 1001;
          display: flex;
          gap: 5px;
-         padding: 2px;
-         background: rgba(95, 110, 120, 0.9);
-         //border: 1px solid #888;
-         border-radius: 8px;
+         padding: 3px;
+         background: rgba(105, 116, 119, 0.35);
         }
 
        /* menu button styling (flat look) */
        .map-btn {
          padding: 6px 10px;
          font-size: 12px;
-         color: white;
+         color: pink;
          cursor: pointer;
          height: 28px;
          width: 97px;
          min-width: 65px;
-         background: transparent; /* Remove background */
-         border-color:grey;
-         border: 1px solid #888;
+         //background: transparent; /* Remove background */
+         background: rgba(80, 100, 105, 0.9);
+         border: 0.5px solid grey;
          //border: none; /* Remove border */
-         border-radius: 8px; /* Remove individual rounding */
+         border-radius: 14px; /* Remove individual rounding */
+       }
+       .map-btn:hover {
+         color: orange;
        }
 
       /* danger Areas button with submenu */
@@ -89,15 +91,14 @@
          display: inline-flex;
          flex-direction: column;
        }
-
        .areas-checkboxes {
          display: none;
          position: absolute;
          top: 108%;
          left: 0;
          width: 87px;
-         background: rgba(95, 110, 120, 0.9);
-         color: white;
+         background: rgba(198, 202, 200, 0.95);
+         color: #0A3A40;
          padding: 5px;
          margin-top: 1px;
          border-radius: 6px;
@@ -106,20 +107,23 @@
          font-family: sans-serif;
          z-index: 1002;
        }
-
        .areas-checkboxes label {
          display: block;
          margin: 2px 0;
-       }
-
-       .map-btn:hover {
-         color: yellow;
        }
 
        /* Show checkboxes when Areas button is active */
        #areasPanel.active .areas-checkboxes {
          display: block;
        }
+ 
+      #clearAreasBtn.map-btn {
+        font-size: 9px;
+        padding: 4px 8px;
+        height: 20px;
+        width:85px;
+        allign: center;
+      }
 
        /*route pair area styling*/
        #routePanel {
@@ -223,7 +227,7 @@
        /* sector tickbox list - right of the screen*/
        #sectorPanel {
          position: absolute;
-         top: 3px;
+         top: 34px;
          right: 5px;
          background: rgba(35, 49, 57, 0.7);
          color: white;
@@ -232,7 +236,7 @@
          border-radius: 8px;
          overflow: hidden;
          z-index: 1000;
-         width: 75px;
+         width: 77px;
          box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
        }
 
@@ -309,6 +313,22 @@
       .leaflet-tooltip.holding-tooltip::after {
         display: none !important;
       }
+
+       /*--display CFL-XFL tooltip at both ends of the route*/
+       .leaflet-tooltip.route-extra-label {
+         /*background-color: rgba(305, 200, 230, 0.95);!important; //pink
+         background-color: rgba(134, 230, 173, 0.9);!important; //green
+         */
+         background-color: rgba(134, 230, 173, 1);!important;
+         color: #013845 !important;
+         padding: 3px 10px;
+         font-weight: bold;
+         font-size: 12px;
+         border: none; /* optional, removes default border */
+         border-radius: 11px;
+         position: "absolute",
+       }
+
        /*--display selected route pair remarks at the bottom of the screen*/
        #remarksOverlay {
          position: absolute;
@@ -346,21 +366,6 @@
          white-space: nowrap;
          overflow: hidden;
          text-overflow: ellipsis;
-       }
-
-       /*--display CFL-XFL tooltip at both ends of the route*/
-       .leaflet-tooltip.route-extra-label {
-         /*background-color: rgba(305, 200, 230, 0.95);!important; //pink
-         background-color: rgba(134, 230, 173, 0.9);!important; //green
-         */
-         background-color: rgba(134, 230, 173, 1);!important;
-         color: #013845 !important;
-         padding: 3px 10px;
-         font-weight: bold;
-         font-size: 12px;
-         border: none; /* optional, removes default border */
-         border-radius: 11px;
-         position: "absolute",
        }
 
        /*--display route with airway names at the bottom of the screen */
@@ -432,8 +437,9 @@
     <div id="mapMenuBar" class="map-menu-bar">
       <button id="resetViewBtn" class="map-btn">Clear</button>
       <button id="toggleMapBtn" class="map-btn">Toggle Map</button>
-      <button id="toggleWaypointsBtn" class="map-btn">Names: ON</button>
       <button id="toggleTableBtn" class="map-btn">Sector Info ▸</button>
+      <button id="toggleWaypointsBtn" class="map-btn">Names: ON</button>
+      <button id="toggleRunwaysBtn" class="map-btn">RWYs: ON</button>
       <button id="showHoldingsBtn" class="map-btn">Holdings ▸</button>
       <div id="areasPanel" class="map-btn-panel">
         <button id="toggleAreasBtn" class="map-btn">Areas ▸</button>
@@ -448,9 +454,11 @@
           <label><input type="checkbox" id="toggleDanger" /> Danger</label>
           <label><input type="checkbox" id="toggleTraining" /> Training</label>
           <label><input type="checkbox" id="toggleDetails" /> Info</label>
+          <button id="clearAreasBtn" class="map-btn">Clear</button>
         </div>
       </div>
     </div>
+
 
     <!--route filter buttons -->
     <body>
@@ -601,9 +609,22 @@
         ["262100N", "0560600E"],
       ];
 
+      //global variables------------
       const sectorPolygons = {};
       const sectorLayers = {};
+      let extraLabelMarkers = [];
+      let drawnAreaLayers = [];
+      let holdingLayers = [];
+      let holdingMarkers = [];
+      let runwayLayers = [];
+      let holdingsVisible = false;
+      let areasVisible = false;
+      let mapLayerVisible = false;
+      let currentRouteFilter = "Arr";
 
+
+
+      //let map, prohibitated, restricted, danger, training, drawnRouteLayers = [], areasVisible = false, holdingsVisible = false, runwayLayers = [];
      //convert coordinates decimal numbers
       const latlngs = rawCoords
         .map(([latDMS, lonDMS]) => [
@@ -611,6 +632,80 @@
           convertDMSToDecimal(lonDMS),
         ])
         .filter(([lat, lon]) => lat !== null && lon !== null);
+
+     //10nm final extended lines ------------
+      const runwayCoords = {
+        "OMAA_31L": [["242518N", "0544001E"],["241909N", "0544841E"]],
+        "OMAA_31R": [["242632N", "0544012E"],["242024N", "0544852E"]], 
+        "OMAA_13L": [["242754N", "0543817E"],["243403N", "0542938E"]],
+        "OMAA_13R": [["242639N", "0543806E"],["243248N", "0542927E"]], 
+
+        "OMAD_31": [["242510N", "0542814E"], ["241900N", "0543651E"]],
+        "OMAD_13": [["242614N", "0542644E"], ["243225N", "0541806E"]],
+
+        "OMAL_19": [["241647N", "0553642E"], ["242641N", "0553807E"]], 
+        "OMAL_01": [["241438N", "0553624E"], ["240443N", "0553459E"]],
+
+        //"OMAM_13L": [["241530N", "0543200E"], ["242132N", "0542315E"]],
+        //"OMAM_13R": [["241427N", "0543212E"], ["242029N", "0542327E"]],
+        //"OMAM_31L": [["241315N", "0543355E"], ["240714N", "0544240E"]],
+        //"OMAM_31R": [["241418N", "0543343E"], ["240816N", "0544227E"]],
+
+        "OMBY_13": [["241729N", "0523416E"], ["242414N", "0522611E"]],
+        "OMBY_31": [["241633.46N", "0523522.45E"], ["240948N", "0524327E"]],
+
+        "OMAS_31": [["250802.32N", "0525247.65E"], ["250131N", "0530110E"]],
+        "OMAS_13": [["250834N", "0525207E"], ["251504N", "0524344E"]],
+
+        "OMDB_12L": [["251600N", "0552047E"],["252113N", "0551122E"]],
+        "OMDB_12R": [["251522N", "0552129E"],["252035N", "0551204E"]],
+        "OMDB_30L": [["251407N", "0552345E"],["250853N", "0553310E"]],
+        "OMDB_30R": [["251446N", "0552300E"],["250933N", "0553225E"]],
+        
+        "OMDW_30": [["245310N", "0551049E"], ["244757N", "0552012E"]],
+        "OMDW_12": [["245426N", "0550831E"], ["245938N", "0545907E"]],
+        //"OMDW_31": [["245143N", "0551005E"], ["244631N", "0551929E"]], //1838m
+        //"OMDW_13": [["245214N", "0550909E"], ["245726N", "0545944E"]], //1838m
+
+        "OMSJ_30": [["251914N", "0553208E"], ["251352N", "0554127E"]],
+        "OMSJ_12": [["252025N", "0553006E"], ["252547N", "0552046E"]], 
+
+        "OMRK_16": [["253747N", "0555602E"], ["254726N", "0555308E"]],
+        "OMRK_34": [["253549N", "0555638E"], ["252610N", "0555931E"]],  
+
+        "OMFJ_11" :[["250707N", "0561825E"], ["251056N", "0560813E"]], 
+        "OMFJ_29" :[["250620N", "0562029E"], ["250230N", "0563040E"]],
+        //"OMFJ_11R" :[["250652N", "0561845E"], ["251041N", "0560834E"]],  
+        //"OMFJ_29L" :[["250614N", "0562026E"], ["250224N", "0563037E"]],
+
+         "SIR_12": [["255458N", "0543145E"], ["260054N", "0542248E"]],
+         "SIR_30": [["255411N", "0543258E"], ["254815N", "0544154E"]],
+         
+         "KIS_27R": [["263136N", "0535957E"], ["263045N", "0541105E"]], 
+         "KIS_09L": [["263146N", "0535746E"], ["263237N", "0534638E"]],
+         //"KIS_27L": [["263126N", "0535957E"], ["263035N", "0541104E"]], 
+         //"KIS_09R": [["263136N", "0535745E"], ["263227N", "0534637E"]],
+
+         "MCT_08R": [["233531N", "0581618E"], ["233439N", "0580526E"]], 
+         "MCT_26L": [["233542N", "0581824E"], ["233633N", "0582916E"]],
+         //"MCT_08L": [["233621N", "0581529E"], ["233528N", "0580437E"]],
+         //"MCT_26R": [["233632N", "0581744E"], ["233724N", "0582836E"]],
+
+         "OOSH_15": [["242409N", "0563702E"], ["243312N", "0563223E"]],
+         "OOSH_33": [["242211N", "0563802E"], ["241308N", "0564241E"]],
+
+         "BND_12L": [["271357N", "0562315E"], ["272248N", "0562828E"]],
+         "BNE_03R": [["271211N", "0562213E"], ["270320N", "0561701E"]],
+
+         "QSM_23": [["264601N", "0555507E"], ["265232N", "0560337E"]],
+         "QSM_05": [["264432N", "0555310E"], ["263802N", "0554441E"]],
+
+         "DOH_16L": [["251746N", "0513632E"], ["252703N", "0513226E"]],
+         "DOH_34R": [["251520N", "0513736E"], ["250603N", "0514142E"]],
+         "DOH_16R": [["251728N", "0513523E"], ["252645N", "0513118E"]],
+         "DOH_34L": [["251519N", "0513619E"], ["250602N", "0514024E"]],
+         
+      };
 
      //sector coordinates
       const southCoords = [
@@ -3292,6 +3387,7 @@
         }
       });
 
+      //sector selection pannel on the right-----
       function toggleSectorPanel() {
         const panel = document.getElementById("sectorOptions");
         const header = document.getElementById("sectorHeader");
@@ -3348,7 +3444,7 @@
         "#17F5CB",
       ];
 
-      let extraLabelMarkers = [];
+      //let extraLabelMarkers = [];
 
       //-------------------------------------
       function expandRoute(routeSeq, airwaysDict) {
@@ -3394,8 +3490,8 @@
         }
         return expanded;
       }
-      //-------------------------------------------
-      let currentRouteFilter = "Arr";
+      //-polulate route pair buttons based on sectors selected--------------
+      //let currentRouteFilter = "Arr";
 
       function filterRoutes(type) {
         currentRouteFilter = type;
@@ -3471,7 +3567,7 @@
               .forEach((b) => b.classList.remove("selected-route"));
             btn.classList.add("selected-route");
 
-            displayExpandedRouteByKey(fullKey); // ✅ your existing function
+            displayExpandedRouteByKey(fullKey); // your existing function
           };
           list.appendChild(btn);
         });
@@ -3501,7 +3597,7 @@
         zoomDelta: 0.3, //  smallest step = 0.1
       }).setView(latlngs[0], 7);
 
-      let mapLayerVisible = false;
+      //let mapLayerVisible = false;
 
       const zoomSlider = document.getElementById("zoomSlider");
       const zoomValue = document.getElementById("zoomValue");
@@ -3520,23 +3616,6 @@
         zoomValue.textContent = z.toFixed(1);
       });
 
-      document
-        .getElementById("toggleMapBtn")
-        .addEventListener("click", function () {
-          if (mapLayerVisible) {
-            map.removeLayer(baseMapLayer);
-            coordLabelColor = "white";
-          } else {
-            baseMapLayer.addTo(map);
-            coordLabelColor = "black";
-          }
-
-          document.querySelectorAll(".coord-label").forEach((label) => {
-            label.style.color = coordLabelColor;
-          });
-
-          mapLayerVisible = !mapLayerVisible;
-        });
 
       //draw main FIR boundary------------------------
       const polyline = L.polyline(latlngs, {
@@ -3607,14 +3686,16 @@
         });
       }
 
-      //---------------------------
-      let holdingLayers = [];
-      let holdingMarkers = [];
-      let holdingsVisible = false;
+      //------------------Draw holding pattern--------------
 
-      // -------------------------------------------------
-      // Draw holding pattern
-      // -------------------------------------------------
+      //convert nm to meter for hold outbound distance-------------
+      function nmToMeters(nm) {
+        return nm * 1852;
+      }
+      //let holdingLayers = [];
+      //let holdingMarkers = [];
+      //let holdingsVisible = false;
+
       function drawHoldingPattern(
         pointName,
         inboundHeadingDeg,
@@ -3622,7 +3703,8 @@
         turn = "right",
         turnRadiusNm = 2,
         limit = ""
-      ) {
+      ) 
+        {
         const pt = extraPoints[pointName];
         if (!pt) {
           console.warn("Point not found:", pointName);
@@ -3801,48 +3883,87 @@
         holdingMarkers = [];
       }
 
-      // Toggle button for hold are visible ------------
-      document
-        .getElementById("showHoldingsBtn")
-        .addEventListener("click", function () {
-          if (holdingsVisible) {
-            clearAllHoldings();
-            this.textContent = "Holdings ▸";
-          } else {
-            drawAllHoldings();
-            this.textContent = "Holdings ▼";
-          }
-          holdingsVisible = !holdingsVisible;
-        });
 
-      //danger areas selection pannel------------------------------
-      let areasVisible = false;
+    //clear all OMP/R/D training areas when clear button is clicked--------------
+     //let drawnAreaLayers = [];
+    function clearAreas() {
+      const checkboxes = [
+        document.getElementById("toggleProhibitated"),
+        document.getElementById("toggleRestricted"),
+        document.getElementById("toggleDanger"),
+        document.getElementById("toggleTraining"),
+        document.getElementById("toggleDetails")
+     ];
+      checkboxes.forEach(checkbox => {
+        checkbox.checked = false;
+      });
 
-      document
-        .getElementById("toggleAreasBtn")
-        .addEventListener("click", function () {
-          const areasPanel = document.getElementById("areasPanel");
-          if (areasVisible) {
-            areasPanel.classList.remove("active");
-            this.textContent = "Areas ▸";
-          } else {
-            areasPanel.classList.add("active");
-            this.textContent = "Areas ▼";
-          }
-          areasVisible = !areasVisible;
-        });
+      // Remove all area layers from the map
+      if (prohibitated) map.removeLayer(prohibitated);
+      if (restricted) map.removeLayer(restricted);
+      if (danger) map.removeLayer(danger);
+      if (training) map.removeLayer(training);
 
-      function nmToMeters(nm) {
-        return nm * 1852;
+      // Hide the areaDetailsPanel if it’s visible
+      const areaDetailsPanel = document.getElementById("areaDetailsPanel");
+      if (areaDetailsPanel) {
+        areaDetailsPanel.style.display = "none";
+      }
+    }
+
+ 
+  //let runwayLayers = [];
+// Initialize Map and Draw Runway Lines
+    //function initMap() {
+      //map = L.map('map').setView([25.25, 55.36], 12); // Centered on OMDB coordinates
+      //L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        //attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+      //}).addTo(map);
+      //drawRunwayLines();
+    //}
+
+    runwayLayers = []; // Clear existing layers
+      for (const [runway, coords] of Object.entries(runwayCoords)) {
+        const latlngs = coords.map(coord => [
+          convertDMSToDecimal(coord[0]),
+          convertDMSToDecimal(coord[1])
+        ]);
+        const polyline = L.polyline(latlngs, {
+          color: "#00A5CC", //rwy color
+          weight: 1, // Thick line
+          dashArray: "4 2",
+          opacity: 0.8
+        }).addTo(map);
+        runwayLayers.push(polyline);
       }
 
-      // Create layer groups
+    // Toggle Runway Lines--------------
+    function toggleRunwayLines() {
+      const button = document.getElementById("toggleRunwaysBtn");
+      const isVisible = button.textContent === "RWYs: ON";
+      runwayLayers.forEach(layer => {
+        if (isVisible) {
+          map.removeLayer(layer);
+          button.textContent = "RWYs: OFF";
+        } else {
+          map.addLayer(layer);
+          button.textContent = "RWYs: ON";
+        }
+      });
+    }
+
+    // Event Listener for runway Toggle Button--------
+    document
+      .getElementById("toggleRunwaysBtn").addEventListener("click", toggleRunwayLines);
+
+
+      // Create layer groups-------------------
       const prohibitated = L.layerGroup();
       const restricted = L.layerGroup();
       const danger = L.layerGroup();
       const training = L.layerGroup();
 
-      // ✅ Example using your convertDMSToDecimal function
+      //using convertDMSToDecimal function
 
       function dmsToLatLng(latDMS, lonDMS) {
         return [convertDMSToDecimal(latDMS), convertDMSToDecimal(lonDMS)];
@@ -4480,7 +4601,7 @@
             cb.addEventListener("change", populateRouteButtons);
           });
 
-        const activeSectorCodes = new Set(); // 🔹 Track which sectors are active
+        const activeSectorCodes = new Set(); // Track which sectors are active
         const showColorsCheckbox = document.getElementById("showSectorColors");
 
         showColorsCheckbox.addEventListener("change", () => {
@@ -4593,6 +4714,64 @@
             });
           });
 
+       // Toggle map button -------------------------------
+       document
+        .getElementById("toggleMapBtn")
+        .addEventListener("click", function () {
+          if (mapLayerVisible) {
+            map.removeLayer(baseMapLayer);
+            coordLabelColor = "white";
+            runwayLayers.forEach(layer => layer.setStyle({ color: "#00A5CC" })); //rwy color
+          } else {
+            baseMapLayer.addTo(map);
+            coordLabelColor = "#153553";
+            runwayLayers.forEach(layer => layer.setStyle({ color: "black" }));
+          }
+
+          document.querySelectorAll(".coord-label").forEach((label) => {
+            label.style.color = coordLabelColor;
+          });
+
+          mapLayerVisible = !mapLayerVisible;
+        });
+
+
+      // Toggle button for hold are visible ------------
+      document
+        .getElementById("showHoldingsBtn")
+        .addEventListener("click", function () {
+          if (holdingsVisible) {
+            clearAllHoldings();
+            this.textContent = "Holdings ▸";
+          } else {
+            drawAllHoldings();
+            this.textContent = "Holdings ▼";
+          }
+          holdingsVisible = !holdingsVisible;
+        });
+
+      //areas selection pannel------------------------------
+      //let areasVisible = false;
+
+      document
+        .getElementById("toggleAreasBtn")
+        .addEventListener("click", function () {
+          const areasPanel = document.getElementById("areasPanel");
+          if (areasVisible) {
+            areasPanel.classList.remove("active");
+            this.textContent = "Areas ▸";
+          } else {
+            areasPanel.classList.add("active");
+            this.textContent = "Areas ▼";
+          }
+          areasVisible = !areasVisible;
+        });
+
+        document
+          .getElementById("clearAreasBtn").addEventListener("click", clearAreas);
+
+
+        //waypoint names toggle button ---------------
         let coordsVisible = true;
 
         document
