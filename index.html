@@ -1,287 +1,278 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>UAE ACC MAP_V26</title>
-    <meta charset="utf-8" />
+    <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Route Display</title>
+    <!-- Local Leaflet CSS for offline compatibility -->
+    <link rel="stylesheet" href="leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="leaflet.js"></script>
     <style>
-       html,
-       body {
-         margin: 0;
-         padding: 0;
-         overflow: hidden;
-         height: 100%;
-         width: 100%;
-       }
-       #map {
-         height: 100vh;
-         width: 100vw;
-         background-color: #374b57; //screen backgroud
-       }
+      body,
+      html {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        width: 100%;
+        overflow: hidden;
+      }
 
-       /* fixes name labels styling*/
-       .coord-label {
-         background: none !important;
-         border: none !important;
-         box-shadow: none !important;
-         padding: 0 !important;
-         margin: 0 !important;
-         color: white;
-         font-size: 9px;
-         font-family: 'Roboto', calibri-light;
-         font-weight: light; /* Thinner font */
-         text-align: center;
-         opacity: 0.5;
-       }
-       .coord-label::before {
-         display: none !important;
-       }
+      #map {
+        height: 100vh;
+        width: 100vw;
+        background-color: #374b57; //screen backgroud
+      }
 
-       /* airway name labels styling*/
-       .airway-label {
-         background-color: rgba(55, 65, 75, 0.9) !important;
-         //background: transparent !important;
-         border: none !important;
-         padding: 2px !important;
-         margin: 0px !important;
-         box-shadow: none !important;
-         font-size: 12px;
-         //font-family: 'Roboto', calibri-light;
-         font-weight: bold;
-         color: yellow !important;
-         text-shadow: none !important;
-         line-height: 1;
-       }
+      /* fixes name labels styling*/
+      .coord-label {
+        background: none !important;
+        border: none !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        color: white;
+        font-size: 9px;
+        font-family: "Roboto", calibri-light;
+        font-weight: light; /* Thinner font */
+        text-align: center;
+        opacity: 0.5;
+      }
+      .coord-label::before {
+        display: none !important;
+      }
 
-       /* Menu bar styling */
-       .map-menu-bar {
-         position: fixed;
-         top: 0px;
-         left: 0px;
-         right: 0px;
-         z-index: 1001;
-         display: flex;
-         gap: 5px;
-         padding: 3px;
-         background: rgba(105, 116, 119, 0.35);
-        }
+      /* airway name labels styling*/
+      .airway-label {
+        background-color: rgba(55, 65, 75, 0.9) !important;
+        //background: transparent !important;
+        border: none !important;
+        padding: 2px !important;
+        margin: 0px !important;
+        box-shadow: none !important;
+        font-size: 12px;
+        //font-family: 'Roboto', calibri-light;
+        font-weight: bold;
+        color: yellow !important;
+        text-shadow: none !important;
+        line-height: 1;
+      }
 
-       /* menu button styling (flat look) */
-       .map-btn {
-         padding: 6px 10px;
-         font-size: 12px;
-         color: pink;
-         cursor: pointer;
-         height: 28px;
-         width: 97px;
-         min-width: 65px;
-         //background: transparent; /* Remove background */
-         background: rgba(80, 100, 105, 0.9);
-         border: 0.5px solid grey;
-         //border: none; /* Remove border */
-         border-radius: 14px; /* Remove individual rounding */
-       }
-       .map-btn:hover {
-         color: orange;
-       }
+      /* ------------------------Menu bar styling ------------------------*/
+      .map-menu-bar {
+        position: fixed;
+        top: 0px;
+        left: 0px;
+        right: 0px;
+        z-index: 3000;
+        display: flex;
+        gap: 5px;
+        padding: 3px;
+        background: rgba(105, 116, 119, 0.35);
+      }
 
+      /* ------menu button styling (flat look)----- */
+      .map-btn {
+        padding: 6px 10px;
+        font-size: 12px;
+        color: #fff2cc;
+        cursor: pointer;
+        height: 28px;
+        width: 97px;
+        min-width: 65px;
+        //background: transparent; /* Remove background */
+        background: rgba(80, 100, 105, 0.9);
+        border: 0.5px solid grey;
+        //border: none; /* Remove border */
+        border-radius: 14px; /* Remove individual rounding */
+      }
+      .map-btn:hover {
+        color: orange;
+      }
+
+      #toggleRouteTipsBtn {
+        width: 110px;
+      }
       /* danger Areas button with submenu */
-       .map-btn-panel {
-         position: relative;
-         display: inline-flex;
-         flex-direction: column;
-       }
-       .areas-checkboxes {
-         display: none;
-         position: absolute;
-         top: 108%;
-         left: 0;
-         width: 87px;
-         background: rgba(198, 202, 200, 0.95);
-         color: #0A3A40;
-         padding: 5px;
-         margin-top: 1px;
-         border-radius: 6px;
-         box-shadow: 0 0 6px rgba(0, 0, 0, 0.3);
-         font-size: 11px;
-         font-family: sans-serif;
-         z-index: 1002;
-       }
-       .areas-checkboxes label {
-         display: block;
-         margin: 2px 0;
-       }
+      .map-btn-panel {
+        position: relative;
+        display: inline-flex;
+        flex-direction: column;
+      }
 
-       /* Show checkboxes when Areas button is active */
-       #areasPanel.active .areas-checkboxes {
-         display: block;
-       }
- 
+      .areas-checkboxes {
+        display: none;
+        position: absolute;
+        top: 108%;
+        left: 0;
+        width: 87px;
+        background: rgba(198, 202, 200, 0.95);
+        color: #0a3a40;
+        padding: 5px;
+        margin-top: 1px;
+        border-radius: 6px;
+        box-shadow: 0 0 6px rgba(0, 0, 0, 0.3);
+        font-size: 11px;
+        font-family: sans-serif;
+        z-index: 1002;
+      }
+
+      .areas-checkboxes label {
+        display: block;
+        margin: 2px 0;
+      }
+
+      /* Show checkboxes when Areas and Sectors button is active */
+      #areasPanel.active .areas-checkboxes,
+      #sectorPanel.active .sector-checkboxes {
+        display: block;
+      }
+
       #clearAreasBtn.map-btn {
         font-size: 9px;
         padding: 4px 8px;
         height: 20px;
-        width:85px;
-        allign: center;
+        width: 85px;
+        text-allign: center;
       }
 
-       /*route pair area styling*/
-       #routePanel {
-         position: absolute;
-         top: 34px;
-         left: 3px;
-         background: rgba(35, 49, 57, 0.6);
-         //border: 1px solid #ccc; //#999;
-         border-radius: 8px;
-         padding: 8px;
-         width: 150px;
-         max-height: 92%;
-         overflow: hidden;
-         //overflow-y: auto;
-         z-index: 1000;
-         color: white;
-         box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
-         display: flex;
-         flex-direction: column;
-       }
+      /* Custom sector-checkboxes style */
+      .sector-checkboxes {
+        display: none;
+        position: absolute;
+        top: 108%;
+        left: 0;
+        width: 85px;
+        background: rgba(45, 59, 77, 0.8);
+        color: #ddebf7;
+        padding: 6px;
+        margin-top: 1px;
+        border-radius: 6px;
+        box-shadow: 0 0 6px rgba(0, 0, 0, 0.5);
+        font-size: 11px;
+        font-family: sans-serif;
+        z-index: 1002;
+      }
 
-       #routeList {
-         overflow-y: auto;
-         overflow-x: hidden;
-         padding-right: 6px;
-       }
+      .sector-checkboxes label {
+        display: block;
+        margin: 3px 0; /* Slightly more spacing between labels */
+      }
 
-       #routeList::-webkit-scrollbar {
-         width: 4px; /* narrower scrollbar */
-       }
+      .sector-checkboxes hr {
+        margin: 6px 0;
+        border-color: #d3d3d3; /* Match text color for consistency */
+      }
 
-       #routeList::-webkit-scrollbar-thumb {
-         background-color: rgba(200, 200, 200, 0.5); /* thumb color */
-         border-radius: 3px;
-       }
+      /* Ensure sectorPanel is pushed to the far right */
+      #sectorPanel {
+        margin-left: auto;
+      }
+      /*-------------------route pair area styling--------------------*/
+      #routePanel {
+        position: absolute;
+        top: 34px;
+        left: 3px;
+        background: rgba(35, 49, 57, 0.6);
+        //border: 1px solid #ccc; //#999;
+        border-radius: 8px;
+        padding: 8px;
+        width: 150px;
+        max-height: 92%;
+        overflow: hidden;
+        //overflow-y: auto;
+        z-index: 1000;
+        color: white;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
+        display: flex;
+        flex-direction: column;
+      }
 
-       #routeList::-webkit-scrollbar-track {
-         background-color: transparent;
-       }
+      #routeList {
+        overflow-y: auto;
+        overflow-x: hidden;
+        padding-right: 6px;
+      }
 
-       /*route pair buttons styling*/
-       #routeList button {
-         display: block;
-         width: 100%;
-         margin-bottom: 5px;
-         padding: 4px;
-         font-size: 10px;
-         border-radius: 12px;
-         border: 0.1px solid grey;
-         background: #405664;
-         color: white;
-         cursor: pointer;
-         transition: transform 0.2s ease;
-         transform-origin: center;
-         will-change: transform;
-       }
+      #routeList::-webkit-scrollbar {
+        width: 4px; /* narrower scrollbar */
+      }
 
-       #routeList button:hover {
-         transform: scale(1.2);
-         background-color: #fbc965;
-         color: black;
-         z-index: 1;
-       }
+      #routeList::-webkit-scrollbar-thumb {
+        background-color: rgba(200, 200, 200, 0.5); /* thumb color */
+        border-radius: 3px;
+      }
 
-       /*format route pair button when selected*/
-       #routeList button.selected-route {
-         background-color: #fbc965;
-         color: black;
-         //font-weight: bold;
-         border: 1px solid black;
-       }
+      #routeList::-webkit-scrollbar-track {
+        background-color: transparent;
+      }
 
-       #routeFilters {
-         display: flex;
-         justify-content: space-between;
-         margin-bottom: 8px;
-         background: rgba(0, 0, 0, 0.15);
-         border-bottom: 1px solid #888;
-       }
+      /*route pair buttons styling*/
+      #routeList button {
+        display: block;
+        width: 100%;
+        margin-bottom: 5px;
+        padding: 4px;
+        font-size: 10px;
+        border-radius: 12px;
+        border: 0.1px solid grey;
+        background: #405664;
+        color: white;
+        cursor: pointer;
+        transition: transform 0.2s ease;
+        transform-origin: center;
+        will-change: transform;
+      }
 
-       .filter-btn {
-         flex: 1;
-         padding: 4px;
-         margin: 2px;
-         color: #486110;
-         font-size: 12px;
-         border-radius: 8px;
-         border: none;
-         cursor: pointer;
-         background: #bfbfbf;
-       }
+      #routeList button:hover {
+        transform: scale(1.2);
+        background-color: #fbc965;
+        color: black;
+        z-index: 1;
+      }
 
-       .filter-btn.selected {
-         background-color: #fbc965; //orange;
-         color: black; //
-         font-size: 12px;
-         font-weight: bold;
-         border: 1px solid black;
-       }
+      /*format route pair button when selected*/
+      #routeList button.selected-route {
+        background-color: #fbc965;
+        color: black;
+        //font-weight: bold;
+        border: 1px solid black;
+      }
 
-       /* sector tickbox list - right of the screen*/
-       #sectorPanel {
-         position: absolute;
-         top: 34px;
-         right: 5px;
-         background: rgba(35, 49, 57, 0.7);
-         color: white;
-         font-family: sans-serif;
-         font-size: 12px;
-         border-radius: 8px;
-         overflow: hidden;
-         z-index: 1000;
-         width: 77px;
-         box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
-       }
+      #routeFilters {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 8px;
+        background: rgba(0, 0, 0, 0.15);
+        border-bottom: 1px solid #888;
+      }
 
-       #sectorHeader {
-         // background: #222;
-         padding: 8px;
-         cursor: pointer;
-         font-weight: bold;
-         text-align: center;
-       }
+      .filter-btn {
+        flex: 1;
+        padding: 4px;
+        margin: 2px;
+        color: #486110;
+        font-size: 12px;
+        border-radius: 8px;
+        border: none;
+        cursor: pointer;
+        background: #bfbfbf;
+      }
 
-       #sectorOptions {
-         padding: 8px;
-         //display: none; /* start collapsed */
-         max-height: 410px;
-         overflow-y: auto;
-       }
+      .filter-btn.selected {
+        background-color: #fbc965; //orange;
+        color: black; //
+        font-size: 12px;
+        font-weight: bold;
+        border: 1px solid black;
+      }
 
-       #sectorOptions label {
-         display: block;
-         margin: 4px 0;
-         font-size: 11px;
-         cursor: pointer;
-       }
-
-       #sectorOptions {
-         overflow-y: auto;
-         overflow-x: hidden;
-         padding-right: 6px;
-       }
-
-       #sectorOptions::-webkit-scrollbar {
-         width: 4px; /* narrower scrollbar */
-       }
-
-       #sectorOptions::-webkit-scrollbar-thumb {
-         background-color: rgba(200, 200, 200, 0.5); /* thumb color */
-         border-radius: 3px;
-       }
-
-       #sectorOptions::-webkit-scrollbar-track {
-         background-color: transparent;
-       }
-
-      /*sector letter in colored area styling big letter*/
+      /*-----------------sector letter in colored area styling big letter---------------------*/
       .sector-label {
         background: none !important;
         border: none !important;
@@ -293,19 +284,19 @@
         font-family: monospace !important;
         font-weight: bold !important;
         text-align: bottom !important;
-        opacity: 1 !important;  /* Ensure container is fully visible; opacity is handled via rgba */
+        opacity: 1 !important; /* Ensure container is fully visible; opacity is handled via rgba */
       }
 
-      /* holding pattern tooltip styling*/
+      /* ----------------holding pattern tooltip styling----------------*/
       .leaflet-tooltip.holding-tooltip {
         background-color: rgba(10, 60, 70, 1);
-        color: yellow;              
-        border: 1px solid grey; 
-        border-radius: 10px;      
+        color: yellow;
+        border: 1px solid grey;
+        border-radius: 10px;
         padding: 6px 10px;
         font-size: 12px;
         font-family: Arial, sans-serif;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
       }
 
       /* Remove the little arrow ("tip") */
@@ -314,193 +305,183 @@
         display: none !important;
       }
 
-       /*--display CFL-XFL tooltip at both ends of the route*/
-       .leaflet-tooltip.route-extra-label {
-         /*background-color: rgba(305, 200, 230, 0.95);!important; //pink
-         background-color: rgba(134, 230, 173, 0.9);!important; //green
-         */
-         background-color: rgba(134, 230, 173, 1);!important;
-         color: #013845 !important;
-         padding: 3px 10px;
-         font-weight: bold;
-         font-size: 12px;
-         border: none; /* optional, removes default border */
-         border-radius: 11px;
-         position: "absolute",
-       }
+      /* Danger-Area Details tooltip top center*/
+      .area-details-panel {
+        position: absolute;
+        top: 34px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(10, 60, 70, 1);
+        padding: 8px 12px;
+        border-radius: 10px;
+        border: 1px solid grey;
+        font-size: 13px;
+        font-family: Arial, sans-serif;
+        white-space: pre-line; /* Changed from pre-wrap to normal to collapse whitespace */
+        display: none;
+        z-index: 2000;
+        text-align: left;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
+        line-height: 1.5; /* Reduced line-height for tighter spacing */
+      }
+      .area-details-panel strong {
+        font-weight: bold;
+      }
+      #areaDetailsPanel::first-line {
+        line-height: 0; /* tighten the top */
+      }
 
-       /*--display selected route pair remarks at the bottom of the screen*/
-       #remarksOverlay {
-         position: absolute;
-         bottom: 133px;
-         left: 50%;
-         transform: translateX(-50%);
-         background: rgba(134, 230, 173, 1);//green
-         color: #013845;
-         padding: 3px 10px;
-         font-weight: bold;
-         font-size: 12px;
-         border-radius: 11px;
-         z-index: 1500;
-         pointer-events: none; /* so it doesn't block map clicks */
-         white-space: pre-wrap;
-         text-align: center;
-       }
+      /*------------------------ Tooltip container ---------------------------------*/
+      .tooltip-container {
+        position: absolute;
+        bottom: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        flex-direction: column; /* Stack vertically */
+        align-items: center;
+        gap: 5px;
+        z-index: 1500;
+        pointer-events: none;
+      }
 
-       /*--display sector initials at the bottom of the screen */
-       #sectorTooltip {
-         position: absolute;
-         bottom: 95px;
-         left: 50%;
-         transform: translateX(-50%);
-         padding: 6px 12px;
-         background: #233139;
-         color: white;
-         font-size: 14px;
-         font-family: 'Roboto', san-serif;
-         //font-weight: bold;
-         border-radius: 12px;
-         z-index: 1001;
-         max-width: 90%;
-         text-align: center;
-         white-space: nowrap;
-         overflow: hidden;
-         text-overflow: ellipsis;
-       }
+      /* Individual tooltip styling */
+      .tooltip {
+        padding: 6px 12px;
+        background: #233139;
+        color: white;
+        font-size: 13px;
+        font-family: "Roboto", sans-serif;
+        border-radius: 12px;
+        text-align: center;
+        white-space: nowrap; /* Keep nowrap for single-line tooltips */
+        overflow: hidden;
+        text-overflow: ellipsis;
+        width: auto;
+        max-width: none;
+        display: inline-block; /* Ensure individual width calculation */
+      }
 
-       /*--display route with airway names at the bottom of the screen */
-       #routeTooltip {
-         position: absolute;
-         bottom: 60px;
-         left: 50%;
-         transform: translateX(-50%);
-         padding: 6px 12px;
-         background: #233139;
-         color: white;
-         font-size: 13px;
-         font-family: 'Roboto', san-serif;
-         //font-weight: bold;
-         border-radius: 12px;
-         z-index: 1001;
-         max-width: 90%;
-         text-align: center;
-         white-space: nowrap;
-         overflow: hidden;
-         text-overflow: ellipsis;
-       }
+      /*------ Specific styling for route with only waypoints tooltip --------*/
+      #expandedRouteTooltip.tooltip {
+        font-size: 13.6px;
+        font-family: monospace;
+      }
 
-       /*--display full route fix names at the bottom of the screen */
-       #expandedRouteTooltip {
-         position: absolute;
-         bottom: 23px;
-         left: 50%;
-         transform: translateX(-50%);
-         padding: 6px 12px;
-         background: #233139;
-         color: white;
-         font-size: 13.6px;
-         font-family: monospace;
-         //font-weight: bold;
-         border-radius: 12px;
-         z-index: 1001;
-         max-width: 90%;
-         text-align: center;
-         white-space: nowrap;
-         overflow: hidden;
-         text-overflow: ellipsis;
-       }
+      /*----Specific styling CFL_XFL tooltip at the ends of the route------*/
+      .leaflet-tooltip.route-extra-label {
+        background-color: rgba(134, 230, 173, 1) !important;
+        //background-color: rgba(78, 96, 103, 1) !important;
+        color: #013845 !important;
+        //color: yellow;
+        padding: 3px 10px;
+        font-weight: bold;
+        font-size: 12px;
+        border: none;
+        border-radius: 11px;
+        position: absolute;
+      }
 
-       /*remove unnecessary space from top row of danger area tooltip*/
-       #areaDetailsPanel::first-line {
-         line-height: 0;   /* tighten the top */
-       }
+      #remarksOverlay.tooltip {
+        background: rgba(134, 230, 173, 1);
+        //background: rgba(78, 96, 103, 1);
+        color: #013841;
+        //font-weight: bold;
+        font-size: 13px;
+      }
 
-       /*add yellow spot at the end of the drawn route line*/
-       .arrow-head {
-         width: 3px;
-         height: 3px;
-         background: url('data:image/svg+xml;utf8,<svg fill="yellow" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="40"/></svg>')
-           no-repeat center;
-         background-size: contain;
-         transform-origin: center;
-       }
+      /* Ensure map has relative positioning for absolute children */
+      #map {
+        position: relative;
+        width: 100%;
+        height: 100vh; /* Adjust based on  map height */
+      }
+
+      /*add yellow spot at the end of the drawn route line*/
+      .arrow-head {
+        width: 3px;
+        height: 3px;
+        background: url('data:image/svg+xml;utf8,<svg fill="yellow" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="40"/></svg>')
+          no-repeat center;
+        background-size: contain;
+        transform-origin: center;
+      }
     </style>
-
-    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Roboto&display=swap"
-      rel="stylesheet"
-    />
   </head>
-
-    <!-- Menu bar for buttons -->
-    <div id="mapMenuBar" class="map-menu-bar">
-      <button id="resetViewBtn" class="map-btn">Clear</button>
-      <button id="toggleMapBtn" class="map-btn">Toggle Map</button>
-      <button id="toggleTableBtn" class="map-btn">Sector Info ▸</button>
-      <button id="toggleWaypointsBtn" class="map-btn">Names: ON</button>
-      <button id="toggleRunwaysBtn" class="map-btn">RWYs: ON</button>
-      <button id="showHoldingsBtn" class="map-btn">Holdings ▸</button>
-      <div id="areasPanel" class="map-btn-panel">
-        <button id="toggleAreasBtn" class="map-btn">Areas ▸</button>
-        <div id="areasCheckboxes" class="areas-checkboxes">
-          <label
-            ><input type="checkbox" id="toggleProhibitated" />
-            Prohibitated</label
-          >
-          <label
-            ><input type="checkbox" id="toggleRestricted" /> Restricted</label
-          >
-          <label><input type="checkbox" id="toggleDanger" /> Danger</label>
-          <label><input type="checkbox" id="toggleTraining" /> Training</label>
-          <label><input type="checkbox" id="toggleDetails" /> Info</label>
-          <button id="clearAreasBtn" class="map-btn">Clear</button>
-        </div>
+  <body>
+  <!-- Menu bar for buttons -->
+  <div id="map"></div>
+  <div id="mapMenuBar" class="map-menu-bar">
+    <button id="resetViewBtn" class="map-btn">RTE Clear</button>
+    <button id="toggleMapBtn" class="map-btn">Toggle Map</button>
+    <button id="toggleTableBtn" class="map-btn">Sector Info ▸</button>
+    <button id="toggleRouteTipsBtn" class="map-btn">RTE Info: OFF</button>
+    <button id="toggleWaypointsBtn" class="map-btn">Names: ON</button>
+    <button id="toggleRunwaysBtn" class="map-btn">RWYs: ON</button>
+    <button id="showHoldingsBtn" class="map-btn">Holdings ▸</button>
+    <div id="areasPanel" class="map-btn-panel">
+      <button id="toggleAreasBtn" class="map-btn">Areas ▸</button>
+      <div id="areasCheckboxes" class="areas-checkboxes">
+        <label><input type="checkbox" id="toggleProhibitated" /> Prohibitated</label>
+        <label><input type="checkbox" id="toggleRestricted" /> Restricted</label>
+        <label><input type="checkbox" id="toggleDanger" /> Danger</label>
+        <label><input type="checkbox" id="toggleTraining" /> Training</label>
+        <label><input type="checkbox" id="toggleDetails" /> Info</label>
+        <button id="clearAreasBtn" class="map-btn">Clear</button>
       </div>
     </div>
-
-
-    <!--route filter buttons -->
-    <body>
-      <div id="routePanel">
-        <div id="routeFilters">
-          <button onclick="filterRoutes('Arr')" class="filter-btn selected">
-            Arr
-          </button>
-          <button onclick="filterRoutes('Dep')" class="filter-btn">Dep</button>
-          <button onclick="filterRoutes('Ovf')" class="filter-btn">Ovf</button>
-          <button onclick="filterRoutes('FRA')" class="filter-btn">FRA</button>
+    <div id="sectorPanel" class="map-btn-panel">
+        <button id="sectorHeader" class="map-btn">Sectors ▸</button>
+        <div id="sectorOptions" class="sector-checkboxes">
+          <label><input type="checkbox" id="selectHighSectors" /> High</label>
+          <label><input type="checkbox" id="selectLowSectors" /> Low</label>
+          <hr style="margin: 6px 0; border-color: #0a3a40" />
+          <label><input type="checkbox" value="S" /> ACCS</label>
+          <label><input type="checkbox" value="L" /> ACCL</label>
+          <label><input type="checkbox" value="B" /> ACCB</label>
+          <label><input type="checkbox" value="G" /> ACCG</label>
+          <label><input type="checkbox" value="A" /> ACCA</label>
+          <label><input type="checkbox" value="N" /> ACCN</label>
+          <label><input type="checkbox" value="M" /> ACCM</label>
+          <label><input type="checkbox" value="W" /> ACCW</label>
+          <label><input type="checkbox" value="C" /> ACCC</label>
+          <label><input type="checkbox" value="D" /> ACCD</label>
+          <label><input type="checkbox" value="H" /> ACCH</label>
+          <label><input type="checkbox" value="E" /> ACCE</label>
+          <label><input type="checkbox" value="Y" /> ACCY</label>
+          <label><input type="checkbox" value="R" /> ACCR</label>
+          <hr style="margin: 6px 0; border-color: gray" />
+          <label><input type="checkbox" id="showSectorColors" /> Color</label>
         </div>
-        <div id="routeList"></div>
       </div>
+   </div>
 
-    <!--sector check box buttons -->
-    <div id="sectorPanel">
-      <div id="sectorHeader" onclick="toggleSectorPanel()">Sectors ▸</div>
-      <div id="sectorOptions">
-        <label><input type="checkbox" id="selectHighSectors" /> High</label>
-        <label><input type="checkbox" id="selectLowSectors" /> Low</label>
-        <hr style="margin: 6px 0; border-color: gray" />
-        <label><input type="checkbox" value="S" /> ACCS</label>
-        <label><input type="checkbox" value="L" /> ACCL</label>
-        <label><input type="checkbox" value="B" /> ACCB</label>
-        <label><input type="checkbox" value="G" /> ACCG</label>
-        <label><input type="checkbox" value="A" /> ACCA</label>
-        <label><input type="checkbox" value="N" /> ACCN</label>
-        <label><input type="checkbox" value="M" /> ACCM</label>
-        <label><input type="checkbox" value="W" /> ACCW</label>
-        <label><input type="checkbox" value="C" /> ACCC</label>
-        <label><input type="checkbox" value="D" /> ACCD</label>
-        <label><input type="checkbox" value="H" /> ACCH</label>
-        <label><input type="checkbox" value="E" /> ACCE</label>
-        <label><input type="checkbox" value="Y" /> ACCY</label>
-        <label><input type="checkbox" value="R" /> ACCR</label>
-        <hr style="margin: 6px 0; border-color: gray" />
-        <label><input type="checkbox" id="showSectorColors" /> Color</label>
+  <div id="areaDetailsPanel" class="area-details-panel">
+    <strong id="areaName">Area</strong>
+    <span id="areaLimit"></span>
+    <span id="areaType"></span>
+  </div>
+
+  <div id="tooltipContainer" class="tooltip-container">
+    <div id="sectorTooltip" class="tooltip">Sectors:</div>
+    <div id="routeTooltip" class="tooltip">Route:</div>
+    <div id="expandedRouteTooltip" class="tooltip">Waypoints:</div>
+    <div id="remarksOverlay" class="tooltip">Remarks:</div>
+   </div>
+
+  <!--route filter buttons -->
+  
+    <div id="routePanel">
+      <div id="routeFilters">
+        <button onclick="filterRoutes('Arr')" class="filter-btn selected">Arr</button>
+        <button onclick="filterRoutes('Dep')" class="filter-btn">Dep</button>
+        <button onclick="filterRoutes('Ovf')" class="filter-btn">Ovf</button>
+        <button onclick="filterRoutes('FRA')" class="filter-btn">FRA</button>
       </div>
+      <div id="routeList"></div>
     </div>
 
-    <!-- Floating Table for sector info-->
+    <!-- ----Floating Table for sector info------------->
     <div
       id="sectorTablePanel"
       style="
@@ -515,8 +496,8 @@
         font-family: sans-serif;
         z-index: 1500;
         display: none;
-      ">
-
+      "
+    >
       <table
         id="sectorTable"
         border="1"
@@ -536,18 +517,7 @@
     </div>
 
 
-<!-- Top-center Daneger-Areas-Details Tooltip Panel -->
-
-<div id="areaDetailsPanel" style="position:absolute; top:30px; left:50%; 
-    transform:translateX(-50%); background:rgba(10, 60, 70, 1); white-space: pre-wrap;
-    padding:8px 12px; border-radius:10px; border: 1px solid grey; font-size:13px; font-family: Arial, sans-serif;
-    display:none; z-index:2000; text-align:left; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4); line-height: 1.5;">
-  <strong id="areaName">Area</strong>
-  <span id="areaLimit"></span>
-  <span id="areaType"></span>
-</div>
-
-<!-- zoonslider at the bottom of the screen styling-->
+    <!-- zoonslider at the bottom of the screen styling-->
     <div
       id="zoomSliderPanel"
       style="
@@ -561,7 +531,8 @@
         font-size: 8px;
         font-family: sans-serif;
         width: 150px;
-      ">
+      "
+    >
       <label for="zoomSlider"></label>
       <input
         type="range"
@@ -573,15 +544,8 @@
       />
       <span id="zoomValue">7.0</span>
     </div>
-
-    <div id="map"></div>
-    <div id="sectorTooltip">Sectors:</div>
-    <div id="routeTooltip">Route:</div>
-    <div id="expandedRouteTooltip">Waypoints:</div>
-
-    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-
     <script>
+
       function convertDMSToDecimal(dmsStr) {
         const match = dmsStr.match(
           /^(\d{2,3})(\d{2})(\d{2}(?:\.\d+)?)([NSWE])$/
@@ -593,8 +557,43 @@
         if (dir === "S" || dir === "W") decimal *= -1;
         return decimal;
       }
+      function dmsToLatLng(latDMS, lonDMS) {
+        return [convertDMSToDecimal(latDMS), convertDMSToDecimal(lonDMS)];
+      }
 
-     //main map border coordinates
+      // Function to update details panel
+      //function normalize(str = "") {
+        //return str.trim().replace(/\n/g, "<br>");
+      //}
+      
+    //------------toggle map layer online----------------------------------------------------------------
+/*
+    const baseMapLayer = L.tileLayer(
+      'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
+      {
+        attribution: '&copy; <a href="https://carto.com/">CARTO</a>',
+        subdomains: 'abcd',
+        maxZoom: 19,
+        opacity: 0.6
+      }
+    );
+
+     const baseMapLayer = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+       {
+         opacity: 0.8
+       }
+     );
+*/
+      const baseMapLayer = L.tileLayer(
+        "https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}",
+        {
+          attribution: "Tiles © Esri",
+          maxZoom: 19,
+          opacity: 0.7, // Adjust transparency here (0 = fully transparent, 1 = opaque)
+        }
+      );
+
+      //----------------main map border coordinates--------------------------
       const rawCoords = [
         ["262100N", "0560600E"],
         ["253600N", "0561300E"],
@@ -614,18 +613,18 @@
       const sectorLayers = {};
       let extraLabelMarkers = [];
       let drawnAreaLayers = [];
+      let drawnRouteLayers = [];
       let holdingLayers = [];
       let holdingMarkers = [];
       let runwayLayers = [];
+      let highlightedAirwayLayers = [];
       let holdingsVisible = false;
       let areasVisible = false;
+      let sectorVisible = false;
       let mapLayerVisible = false;
       let currentRouteFilter = "Arr";
 
-
-
-      //let map, prohibitated, restricted, danger, training, drawnRouteLayers = [], areasVisible = false, holdingsVisible = false, runwayLayers = [];
-     //convert coordinates decimal numbers
+      //convert coordinates decimal numbers
       const latlngs = rawCoords
         .map(([latDMS, lonDMS]) => [
           convertDMSToDecimal(latDMS),
@@ -703,11 +702,10 @@
          "DOH_16L": [["251746N", "0513632E"], ["252703N", "0513226E"]],
          "DOH_34R": [["251520N", "0513736E"], ["250603N", "0514142E"]],
          "DOH_16R": [["251728N", "0513523E"], ["252645N", "0513118E"]],
-         "DOH_34L": [["251519N", "0513619E"], ["250602N", "0514024E"]],
-         
+         "DOH_34L": [["251519N", "0513619E"], ["250602N", "0514024E"]],        
       };
 
-     //sector coordinates
+      //sector coordinates
       const southCoords = [
         ["252629.4279N", "0524901.1237E"],
         ["251727.2300N", "0531010.5921E"],
@@ -2980,7 +2978,15 @@
         "LALDO-TUMAK-FRA": ["LALDO", "DCT", "MITIX", "M557", "TUMAK"],
         "MENSA-ALPOB-FRA": ["MENSA", "DCT", "TUDIS", "N571", "ALPOB"],
         "MENSA-ORMID-FRA": ["MENSA", "DCT", "EGTAG", "P699", "ORMID"],
-        "MENSA-TOSNA-FRA": ["MENSA", "DCT", "EGTAG", "Q576", "RORON", "M430", "TOSNA",],
+        "MENSA-TOSNA-FRA": [
+          "MENSA",
+          "DCT",
+          "EGTAG",
+          "Q576",
+          "RORON",
+          "M430",
+          "TOSNA",
+        ],
         "MENSA-TUMAK-FRA": ["MENSA", "DCT", "MITIX", "M557", "TUMAK"],
         "NALPO-LALDO-FRA": ["NALPO", "DCT", "LALDO"],
         "NALPO-TARDI-FRA": ["NALPO", "DCT", "LOVEM", "DCT", "TARDI"],
@@ -3086,7 +3092,15 @@
         ],
         "SODEX-TOVOX-FRA": ["SODEX", "DCT", "UMIBU", "DCT", "TOVOX"],
         "SODEX-TOVOX*-FRA": ["SODEX", "DCT", "UMIBU", "P899", "TOVOX"],
-        "SODEX-TUMAK-FRA": ["SODEX","DCT","BOSEV","Q565","UKUVO","G462","TUMAK",],
+        "SODEX-TUMAK-FRA": [
+          "SODEX",
+          "DCT",
+          "BOSEV",
+          "Q565",
+          "UKUVO",
+          "G462",
+          "TUMAK",
+        ],
         "TOSNA-LABRI-FRA": ["TOSNA", "DCT", "LABRI"],
         "TOSNA-RETAS-FRA": ["TOSNA", "DCT", "NAPMA", "N685", "RETAS"],
       };
@@ -3354,80 +3368,6 @@
         },
       ];
 
-      // Function to render table from sectorData
-      function renderSectorTable() {
-        const tbody = document.querySelector("#sectorTable tbody");
-        tbody.innerHTML = ""; // clear old rows
-
-        sectorData.forEach((row) => {
-          const tr = document.createElement("tr");
-          tr.innerHTML = `
-        <td>${row.sector}</td>
-        <td>${row.limit}</td>
-        <td>${row.freq}</td>
-      `;
-          tbody.appendChild(tr);
-        });
-      }
-
-      // Call once on load
-      renderSectorTable();
-
-      // --- Table toggle logic ---
-      const toggleBtn = document.getElementById("toggleTableBtn");
-      const tablePanel = document.getElementById("sectorTablePanel");
-
-      toggleBtn.addEventListener("click", () => {
-        if (tablePanel.style.display === "none") {
-          tablePanel.style.display = "block";
-          toggleBtn.textContent = "Sector Info ▼";
-        } else {
-          tablePanel.style.display = "none";
-          toggleBtn.textContent = "Sector Info ▸";
-        }
-      });
-
-      //sector selection pannel on the right-----
-      function toggleSectorPanel() {
-        const panel = document.getElementById("sectorOptions");
-        const header = document.getElementById("sectorHeader");
-
-        if (panel.style.display === "none") {
-          panel.style.display = "block";
-          header.innerText = "Sectors ▼";
-        } else {
-          panel.style.display = "none";
-          header.innerText = "Sectors ▸";
-        }
-      }
-
-      //----------------------------------------------------------------------------
- /*
-    const baseMapLayer = L.tileLayer(
-      'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
-      {
-        attribution: '&copy; <a href="https://carto.com/">CARTO</a>',
-        subdomains: 'abcd',
-        maxZoom: 19,
-        opacity: 0.6
-      }
-    );
-
-     const baseMapLayer = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-       {
-         opacity: 0.8
-       }
-     );
-*/
-      const baseMapLayer = L.tileLayer(
-        "https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}",
-        {
-          attribution: "Tiles © Esri",
-          maxZoom: 19,
-          opacity: 0.7, // Adjust transparency here (0 = fully transparent, 1 = opaque)
-        }
-      );
-
       const routeMap = {};
       for (const key in routes) {
         const [from, to] = key.split("-");
@@ -3435,6 +3375,7 @@
         routeMap[from][to] = routes[key];
       }
 
+      //-----display created route in following colors
       const airwayColors = [
         "#F7663F",
         "#3DA0F1",
@@ -3444,9 +3385,27 @@
         "#17F5CB",
       ];
 
-      //let extraLabelMarkers = [];
+      const extraLatLngs = Object.entries(extraPoints)
+        .map(([name, [latDMS, lonDMS]]) => ({
+          name,
+          lat: convertDMSToDecimal(latDMS),
+          lon: convertDMSToDecimal(lonDMS),
+        }))
+        .filter((pt) => pt.lat !== null && pt.lon !== null);
+
+      // map  zoom rate--------------------------
+      const map = L.map("map", {
+        zoomControl: false,
+        attributionControl: false,
+        scrollWheelZoom: true,
+        wheelPxPerZoomLevel: 200, // <-- Increase this for smoother zoom
+        zoomSnap: 0, //  allow fractional zoom
+        zoomDelta: 0.3, //  smallest step = 0.1
+      }).setView(latlngs[0], 7);
 
       //-------------------------------------
+      //let extraLabelMarkers = [];
+
       function expandRoute(routeSeq, airwaysDict) {
         const expanded = [];
 
@@ -3490,7 +3449,8 @@
         }
         return expanded;
       }
-      //-polulate route pair buttons based on sectors selected--------------
+
+      //--------polulate route pair buttons based on sectors selected--------------
       //let currentRouteFilter = "Arr";
 
       function filterRoutes(type) {
@@ -3503,6 +3463,7 @@
           .classList.add("selected");
         populateRouteButtons();
       }
+
       //-------------------------------------------
       function getSelectedSectors() {
         return Array.from(
@@ -3512,12 +3473,29 @@
         ).map((cb) => cb.value);
       }
 
-      //---------------------------------------
+      //--------sector button toggle-show hide checklists--------------
+
+
+      function toggleSectorPanel() {
+        const sectorPanel = document.getElementById("sectorPanel");
+        if (sectorVisible) {
+         sectorPanel.classList.remove("active");
+          document.getElementById("sectorHeader").textContent = "Sectors ▸";
+        } else {
+          sectorPanel.classList.add("active");
+          document.getElementById("sectorHeader").textContent = "Sectors ▼";
+        }
+        sectorVisible = !sectorVisible;
+      }
+
+      document.getElementById("sectorHeader").addEventListener("click", toggleSectorPanel);
+
+      //------populate route pair buttons on the map UI---------------------------------
       function populateRouteButtons() {
         const list = document.getElementById("routeList");
         list.innerHTML = "";
 
-        const selectedSectors = getSelectedSectors(); //You already have this
+        const selectedSectors = getSelectedSectors();
 
         const routePairs = [];
 
@@ -3567,35 +3545,18 @@
               .forEach((b) => b.classList.remove("selected-route"));
             btn.classList.add("selected-route");
 
-            displayExpandedRouteByKey(fullKey); // your existing function
+            displayExpandedRouteByKey(fullKey);
           };
           list.appendChild(btn);
         });
       }
+
       //-----------------------------
       function setExtraLabelColor(color) {
         document.querySelectorAll(".coord-label").forEach((label) => {
           label.style.color = color;
         });
       }
-
-      //------------------------------------------
-      const extraLatLngs = Object.entries(extraPoints)
-        .map(([name, [latDMS, lonDMS]]) => ({
-          name,
-          lat: convertDMSToDecimal(latDMS),
-          lon: convertDMSToDecimal(lonDMS),
-        }))
-        .filter((pt) => pt.lat !== null && pt.lon !== null);
-
-      const map = L.map("map", {
-        zoomControl: false,
-        attributionControl: false,
-        scrollWheelZoom: true,
-        wheelPxPerZoomLevel: 200, // <-- Increase this for smoother zoom
-        zoomSnap: 0, //  allow fractional zoom
-        zoomDelta: 0.3, //  smallest step = 0.1
-      }).setView(latlngs[0], 7);
 
       //let mapLayerVisible = false;
 
@@ -3616,8 +3577,7 @@
         zoomValue.textContent = z.toFixed(1);
       });
 
-
-      //draw main FIR boundary------------------------
+      //--------------draw main FIR boundary------------------------
       const polyline = L.polyline(latlngs, {
         color: "yellow",
         weight: 1.2,
@@ -3646,7 +3606,7 @@
         }).addTo(map);
       }
 
-      //join airways between points-thin grey line--------------------------
+      //----------join airways between points-thin grey line--------------------------
 
       function drawairways() {
         Object.entries(airways).forEach(([routeName, pointNames]) => {
@@ -3669,7 +3629,7 @@
         });
       }
 
-      //draw fix triangles----------------------
+      //---------------draw fix triangles----------------------
       function renderTriangles() {
         triangleLayers.forEach((layer) => map.removeLayer(layer));
         triangleLayers = [];
@@ -3679,22 +3639,21 @@
         const scale = Math.pow(2, 7 - zoom);
         const size = baseSize * scale;
 
-        // Display triangles on extraPoints
+        // ---------------Display triangles on extraPoints--------
         extraLatLngs.forEach((pt) => {
           const triangle = drawEquilateralTriangle([pt.lat, pt.lon], size);
           triangleLayers.push(triangle);
         });
       }
 
-      //------------------Draw holding pattern--------------
-
-      //convert nm to meter for hold outbound distance-------------
-      function nmToMeters(nm) {
-        return nm * 1852;
-      }
+      //----------------------Draw holding pattern---------------------------
       //let holdingLayers = [];
       //let holdingMarkers = [];
       //let holdingsVisible = false;
+
+      function nmToMeters(nm) {
+        return nm * 1852;
+      }
 
       function drawHoldingPattern(
         pointName,
@@ -3703,8 +3662,7 @@
         turn = "right",
         turnRadiusNm = 2,
         limit = ""
-      ) 
-        {
+      ) {
         const pt = extraPoints[pointName];
         if (!pt) {
           console.warn("Point not found:", pointName);
@@ -3793,7 +3751,7 @@
           [fix.lat, fix.lng],
         ];
 
-        // --- Draw holding pattern line ---
+        // --- Draw holding race cource pattern line ---
         const holdLine = L.polyline(patternPts, {
           color: "red",
           weight: 2,
@@ -3801,7 +3759,7 @@
         }).addTo(map);
         holdingLayers.push(holdLine);
 
-        // --- hold area marker with tooltip ---
+        // --- hold area marker yellow circle with tooltip ---
         const fixMarker = L.circleMarker(fix, {
           radius: 4,
           color: "yellow",
@@ -3855,7 +3813,7 @@
           iconAnchor: [8, 8],
           html: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
                  width="16" height="16"
-                 style="transform: rotate(${inboundRotation}deg); fill: yellow;">
+                 style="transform: rotate(${inboundRotation}deg); fill: lime;">
              <path d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z"/>
            </svg>`,
         });
@@ -3870,6 +3828,7 @@
         }).addTo(map);
         holdingLayers.push(arrowMarker);
       }
+
       // Draw/Clear all holdings ------------------------------------------------
       function drawAllHoldings() {
         holdingLibrary.forEach((h) =>
@@ -3882,7 +3841,6 @@
         holdingLayers = [];
         holdingMarkers = [];
       }
-
 
     //clear all OMP/R/D training areas when clear button is clicked--------------
      //let drawnAreaLayers = [];
@@ -3911,17 +3869,6 @@
       }
     }
 
- 
-  //let runwayLayers = [];
-// Initialize Map and Draw Runway Lines
-    //function initMap() {
-      //map = L.map('map').setView([25.25, 55.36], 12); // Centered on OMDB coordinates
-      //L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        //attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-      //}).addTo(map);
-      //drawRunwayLines();
-    //}
-
     runwayLayers = []; // Clear existing layers
       for (const [runway, coords] of Object.entries(runwayCoords)) {
         const latlngs = coords.map(coord => [
@@ -3929,7 +3876,7 @@
           convertDMSToDecimal(coord[1])
         ]);
         const polyline = L.polyline(latlngs, {
-          color: "#00A5CC", //rwy color
+          color: "#00ADD6", //rwy color
           weight: 1, // Thick line
           dashArray: "4 2",
           opacity: 0.8
@@ -3956,34 +3903,25 @@
     document
       .getElementById("toggleRunwaysBtn").addEventListener("click", toggleRunwayLines);
 
-
-      // Create layer groups-------------------
+      // Create layer groups for danger areas ---------
       const prohibitated = L.layerGroup();
       const restricted = L.layerGroup();
       const danger = L.layerGroup();
       const training = L.layerGroup();
 
-      //using convertDMSToDecimal function
+      let areaTooltip = null; // Global variable to track the area tooltip
 
-      function dmsToLatLng(latDMS, lonDMS) {
-        return [convertDMSToDecimal(latDMS), convertDMSToDecimal(lonDMS)];
-      }
-
-      // Function to update details panel
-      function normalize(str = "") {
-        return str.trim().replace(/\n/g, "<br>");
-      }
-
+      //create tooltip------------
       function showAreaDetails(area) {
         if (!document.getElementById("toggleDetails").checked) return;
 
-        document.getElementById("areaName").innerHTML = area.shapeName;
-        document.getElementById("areaLimit").innerHTML = normalize(area.limit);
-        document.getElementById("areaType").innerHTML = normalize(area.type);
+        document.getElementById("areaName").innerHTML = area.shapeName.trim();
+        document.getElementById("areaLimit").innerHTML = normalize(area.limit).trim().replace(/\n/g, '<br>').replace(/\s+/g, ' '); /* Collapse multiple spaces */
+        document.getElementById("areaType").innerHTML = normalize(area.type).trim().replace(/\n/g, '<br>').replace(/\s+/g, ' '); /* Collapse multiple spaces */
         document.getElementById("areaDetailsPanel").style.display = "block";
       }
-
-      // Hide details if checkbox off
+     
+   // Hide danger area details if checkbox off
       document
         .getElementById("toggleDetails")
         .addEventListener("change", (e) => {
@@ -3993,6 +3931,7 @@
             : "none";
         });
 
+      //draw ares depending upon their physical shapes-circle or polygon or rectangle-------------
       function renderAreas(areaList, layerGroup, color) {
         areaList.forEach((area) => {
           let shape;
@@ -4085,7 +4024,7 @@
               }),
             }).addTo(layerGroup);
 
-            // Details panel on click
+            // show on Details panel on click
             shape.on("click", () => showAreaDetails(area, color));
           }
         });
@@ -4110,7 +4049,7 @@
         panel.style.display = "block";
       }
 
-      // Toggle logic for area checkboxes
+      // link toggle logic for OMP/R/D  area checkboxes---
       document
         .getElementById("toggleProhibitated")
         .addEventListener("change", (e) => {
@@ -4139,7 +4078,39 @@
           else map.removeLayer(training);
         });
 
-      // --- Make sector table -------------------------------------
+      // -----------Function to render sector info table from sectorData---------------------
+      function renderSectorTable() {
+        const tbody = document.querySelector("#sectorTable tbody");
+        tbody.innerHTML = ""; // clear old rows
+
+        sectorData.forEach((row) => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+        <td>${row.sector}</td>
+        <td>${row.limit}</td>
+        <td>${row.freq}</td>
+      `;
+          tbody.appendChild(tr);
+        });
+      }
+      // Call once on load
+      renderSectorTable();
+
+      // --- Table toggle logic ---
+      const toggleBtn = document.getElementById("toggleTableBtn");
+      const tablePanel = document.getElementById("sectorTablePanel");
+
+      toggleBtn.addEventListener("click", () => {
+        if (tablePanel.style.display === "none") {
+          tablePanel.style.display = "block";
+          toggleBtn.textContent = "Sector Info ▼";
+        } else {
+          tablePanel.style.display = "none";
+          toggleBtn.textContent = "Sector Info ▸";
+        }
+      });
+
+      // --- Make sector Info table -------------------------------------
       function makeDraggable(el) {
         let offsetX,
           offsetY,
@@ -4198,11 +4169,16 @@
         }
       });
 
-      let drawnRouteLayers = [];
+ 
+//--------------draw colored router line on map----------------------
+      //let drawnRouteLayers = [];
 
       function clearRouteLayers() {
         drawnRouteLayers.forEach((layer) => map.removeLayer(layer));
         drawnRouteLayers = [];
+    //clear dashed highlighted airways
+        highlightedAirwayLayers.forEach((layer) => map.removeLayer(layer));
+        highlightedAirwayLayers = [];
       }
 
       //-----------------------------
@@ -4245,11 +4221,10 @@
         return { airwaySegments, dctSegments };
       }
 
-      //----------------------------------------------
-      function displayExpandedRouteByKey(routeKey) {
-        const [from, to] = routeKey.split("-");
+      //----displaye route tooltips- bottom of the screen-------------
 
-        // pass real parameters from route key (e.g. ORSAR-KUSEN-FRA)
+      function displayExpandedRouteByKey(routeKey) {
+        const [from, to] = routeKey.split("-");   //(e.g. ORSAR-KUSEN-FRA)
         const routeSteps = routes[routeKey];
 
         if (!routeSteps) {
@@ -4261,38 +4236,19 @@
         if (!routeMap[from]) routeMap[from] = {};
         routeMap[from][to] = routeSteps;
 
-        displayExpandedRoute(from, to, routeKey);
-      }
-
-      function displayExpandedRouteByKey(routeKey) {
-        const [from, to] = routeKey.split("-");
-        const routeSteps = routes[routeKey];
-
-        if (!routeSteps) {
-          alert("Route not found!");
-          return;
-        }
-
-        // Inject into routeMap for reuse
-        if (!routeMap[from]) routeMap[from] = {};
-        routeMap[from][to] = routeSteps;
-
-        // Update existing route tooltip
-        //document.getElementById("routeTooltip").textContent = `Route: ${routeSteps.join(" ")}`;
-
-        // Expand the route for the new tooltip
+        // Expand the route for the waypoints only tooltip
         const expandedRoute = expandRoute(routeSteps, airways);
         document.getElementById(
           "expandedRouteTooltip"
         ).textContent = `${expandedRoute.join(" ")}`;
 
-        // Call the original function to display the route
+        // Call the original function to display the route with airway names---
         displayExpandedRoute(from, to, routeKey);
       }
 
       //------------------------------------------
       function displayExpandedRoute(from, to, routeKey) {
-        clearRouteLayers();
+        clearRouteLayers(); // Clears existing layers but not the overlay unless tracked
         const hoverSectorLayers = {};
         let temporarySectors = [];
 
@@ -4441,45 +4397,33 @@
 
         if (latlngs.length > 1) {
           const bounds = L.latLngBounds(latlngs);
-          map.fitBounds(bounds, {
-            padding: [100, 100],
-            maxZoom: 9,
-          });
+          map.fitBounds(bounds, { padding: [100, 100], maxZoom: 9 });
         }
 
-        // Always show arrow/circle at last point in routeSteps-----------
-
+        // Always show arrow/circle at last point
         const lastPointName = routeSteps[routeSteps.length - 1];
         const lastPoint = extraPoints[lastPointName];
-
         if (lastPoint) {
           const lastCoord = [
             convertDMSToDecimal(lastPoint[0]),
             convertDMSToDecimal(lastPoint[1]),
           ];
-
           const arrow = L.divIcon({
             className: "arrow-head",
             iconSize: [11, 11],
             iconAnchor: [8, 8],
             html: `<div></div>`,
           });
-
           const arrowMarker = L.marker(lastCoord, { icon: arrow }).addTo(map);
           drawnRouteLayers.push(arrowMarker);
         }
 
-        // Remove old remarks div if present
-        let oldDiv = document.getElementById("remarksOverlay");
-        if (oldDiv) {
-          oldDiv.remove();
-        }
-
         // --- Show CFL/XFL/Remarks tooltips if defined -----------------
+        const remarksOverlay = document.getElementById("remarksOverlay");
         if (CFL_XFL[routeKey]) {
           const { CFL, XFL, REMARKS } = CFL_XFL[routeKey];
 
-          // Beginning of route
+          // CFL and XFL tooltips
           const firstPoint = extraPoints[routeSteps[0]];
           if (firstPoint && CFL) {
             const coord = [
@@ -4498,7 +4442,6 @@
             drawnRouteLayers.push(cflTip);
           }
 
-          // End of route
           const lastPoint = extraPoints[routeSteps.at(-1)];
           if (lastPoint && XFL) {
             const coord = [
@@ -4517,27 +4460,28 @@
             drawnRouteLayers.push(xflTip);
           }
 
+          // Update remarks overlay
           if (REMARKS) {
-            // Create new overlay
-            const div = document.createElement("div");
-            div.id = "remarksOverlay";
-
-            div.innerHTML = `* ${REMARKS}`;
-
-            // Append to map container
-            map.getContainer().appendChild(div);
-
-            // Track it for cleanup with the route
-            drawnRouteLayers.push({
-              remove: () => div.remove(),
-            });
+            if (!remarksOverlay) {
+              const div = document.createElement("div");
+              div.id = "remarksOverlay";
+              div.className = "tooltip"; // Ensure it uses the tooltip class
+              map.getContainer().appendChild(div);
+            }
+            remarksOverlay.innerHTML = `# ${REMARKS}`; // Use innerHTML for <br> support
+            remarksOverlay.style.display = "block"; // Ensure it's visible
+          } else {
+            if (remarksOverlay) remarksOverlay.style.display = "none"; // Hide if no remarks
           }
+        } else {
+          if (remarksOverlay) remarksOverlay.style.display = "none"; // Hide if no route data
         }
       }
 
-      let highlightedAirwayLayers = [];
 
       //-----------------------------------------------------
+      //let highlightedAirwayLayers = [];
+
       function highlightAirwaysUsedInRoute(routeSteps, airwayColorMap) {
         // Clear old highlights
         highlightedAirwayLayers.forEach((layer) => map.removeLayer(layer));
@@ -4571,11 +4515,28 @@
             highlightedAirwayLayers.push(line);
           }
         });
-
-        document.getElementById("resetViewBtn").onclick = () => {
-          location.reload();
-        };
       }
+
+let routeTipsVisible = false;
+
+function toggleRouteTips() {
+  const button = document.getElementById("toggleRouteTipsBtn");
+  const routeTooltips = document.querySelectorAll(".leaflet-tooltip.route-extra-label");
+  const remarksOverlay = document.getElementById("remarksOverlay");
+
+  if (routeTipsVisible) {
+    routeTooltips.forEach(tooltip => tooltip.style.display = "none");
+    if (remarksOverlay) remarksOverlay.style.display = "none";
+    button.textContent = "RTE Info: OFF";
+  } else {
+    routeTooltips.forEach(tooltip => tooltip.style.display = "block");
+    if (remarksOverlay) remarksOverlay.style.display = "block";
+    button.textContent = "RTE Info: ON";
+  }
+  routeTipsVisible = !routeTipsVisible;
+}
+
+document.getElementById("toggleRouteTipsBtn").addEventListener("click", toggleRouteTips);
 
       //--select hi/low grouped sector----------------------------------------------
 
@@ -4592,16 +4553,14 @@
       }
 
       //-----------------------------------------
-
       window.onload = function () {
-        // Handle dynamic sector toggling
         document
           .querySelectorAll('#sectorOptions input[type="checkbox"]')
           .forEach((cb) => {
             cb.addEventListener("change", populateRouteButtons);
           });
 
-        const activeSectorCodes = new Set(); // Track which sectors are active
+        const activeSectorCodes = new Set(); //Track which sectors are active
         const showColorsCheckbox = document.getElementById("showSectorColors");
 
         showColorsCheckbox.addEventListener("change", () => {
@@ -4721,7 +4680,7 @@
           if (mapLayerVisible) {
             map.removeLayer(baseMapLayer);
             coordLabelColor = "white";
-            runwayLayers.forEach(layer => layer.setStyle({ color: "#00A5CC" })); //rwy color
+            runwayLayers.forEach(layer => layer.setStyle({ color: "#00ADD6" })); //rwy color
           } else {
             baseMapLayer.addTo(map);
             coordLabelColor = "#153553";
@@ -4734,7 +4693,6 @@
 
           mapLayerVisible = !mapLayerVisible;
         });
-
 
       // Toggle button for hold are visible ------------
       document
@@ -4750,7 +4708,7 @@
           holdingsVisible = !holdingsVisible;
         });
 
-      //areas selection pannel------------------------------
+      //areas check box selection pannel------------------------------
       //let areasVisible = false;
 
       document
@@ -4770,8 +4728,7 @@
         document
           .getElementById("clearAreasBtn").addEventListener("click", clearAreas);
 
-
-        //waypoint names toggle button ---------------
+        // toggle waypoint names on off------------
         let coordsVisible = true;
 
         document
@@ -4809,11 +4766,12 @@
         map.on("zoomend", renderTriangles);
         map.fitBounds(polyline.getBounds());
       };
+       
+       //clear route from the map-----------
+        document.getElementById("resetViewBtn").addEventListener("click", () => {
+          clearRouteLayers();   //clears only the route
+        });
+
     </script>
   </body>
 </html>
-
-
-
-
-
